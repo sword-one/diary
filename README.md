@@ -23,6 +23,7 @@ img/              画像
 
 ## 注意
 
-- 各ページの OGP に `https://example.com` が入っている。**公開URLが決まったら全ファイルを置換すること。**
+- 公開URL: https://sword-one.github.io/diary/
+  新しい記事を足したら、そのページの `og:url` も忘れず書き換える。
   `og:image` は絶対URLでないとLINEでカード表示されない
 - 書影は各出版社に帰属。縮小のみで改変しない
