@@ -237,3 +237,5 @@ footer{max-width:1140px;margin:0 auto;padding:36px 24px 60px;
   .e-d{font-size:14.5px}
   .soon-row{flex-direction:column;gap:3px;padding:16px 0}
 }
+.about-note{font-size:13px !important;color:var(--grey) !important;
+  margin-top:34px;padding-top:20px;border-top:1px solid var(--hair);line-height:1.8 !important}
