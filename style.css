@@ -251,3 +251,29 @@ footer{max-width:1140px;margin:0 auto;padding:36px 24px 60px;
   .bookcard{align-items:flex-start}
   .bk-link{margin-top:10px}
 }
+
+/* ───── キャッチコピー ───── */
+/* 赤の人（結論を先に欲しい）のために、書名のすぐ下に置く */
+.catch{font-size:20px;line-height:1.7;font-weight:700;margin:16px 0 0;
+  color:var(--navy);max-width:var(--maxw);text-wrap:balance}
+
+/* ───── 著者について ───── */
+/* 青の人（根拠を知りたい）のために残す。ただし冒頭ではなく、本のカバー袖の位置に */
+.bio{max-width:var(--maxw);margin:26px 0 0;padding:22px 0 0;
+  border-top:1px solid var(--hair)}
+.bio-h{font-size:11.5px;font-weight:700;letter-spacing:.1em;color:var(--grey);
+  margin-bottom:12px}
+.bio p{font-size:14.5px;line-height:1.85;color:var(--soft);margin:0 0 .9em}
+.bio p:last-child{margin-bottom:0}
+
+/* 見出し → キャッチ → リード の三段。リードはキャッチに寄せる */
+.catch + .lede{margin-top:14px}
+
+/* 一覧でのキャッチ */
+.e-c{font-size:15.5px;line-height:1.65;font-weight:700;color:var(--navy);
+  margin:0 0 7px;text-wrap:balance}
+
+@media(max-width:880px){
+  .catch{font-size:19px;margin-top:14px}
+  .bio p{font-size:14px}
+}

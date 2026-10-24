@@ -27,10 +27,13 @@ img/              画像
 
 1. `coaching.html` を複製して `<書名>.html` にする
 2. 本文を書き換える
-3. **OGPを3つとも書き換える**（`og:title` / `og:description` / `og:url`）
-4. ヒーロー画像とヒーローの `alt`、書影、Amazonリンクを差し替える
-5. `index.html` の「記事」に1件足し、「これから」から該当行を消す
-6. `git add -A && git commit && git push` → 2〜3分でPagesに反映
+3. **キャッチコピー（`.catch`）を書く。** 発見を言い切る1行。h1のすぐ下
+4. **著者の経歴は記事末の `.bio` へ。** 冒頭の見出しは「この本は、何の本か」
+5. **OGPを3つとも書き換える**（`og:title` / `og:description` / `og:url`）
+   `og:description` はキャッチコピーから始める
+6. ヒーロー画像とヒーローの `alt`、書影、Amazonリンクを差し替える
+7. `index.html` の「記事」に1件足す（`.e-c` にキャッチコピー）。「これから」から該当行を消す
+8. `git add -A && git commit && git push` → 2〜3分でPagesに反映
 
 書き方・デザインの決まりは `../CLAUDE.md` を参照。
 
