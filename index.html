@@ -20,20 +20,51 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="top">
 
 <header class="hd"><div class="hd-in">
   <a class="logo" href="index.html">SWORD ONE DIARY</a>
   <span class="logo-sub">ソードワンダイアリー</span>
-  <nav class="hd-nav"><a href="index.html">記事一覧</a><a href="#about">このサイトについて</a></nav>
+  <nav class="hd-nav"><a href="#list">記事一覧</a><a href="#about">このサイトについて</a></nav>
 </div></header>
 
-<div class="lead-in">
-  <h1>読んだ本と、そこで考えたこと</h1>
-  <p>仕事をする上で、生きていく上で。人間関係やコミュニケーションのこと、毎日の仕事が少し進めやすくなること。そういう本を選んで、週に一冊ずつお届けします。</p>
+<!-- ───── 宇宙 ───── -->
+<section class="space" id="space">
+  <canvas class="stars" id="stars" aria-hidden="true"></canvas>
+
+  <div class="space-in">
+    <div class="space-copy">
+      <div class="space-logo">SWORD ONE DIARY</div>
+      <h1>読んだ本と、そこで考えたこと</h1>
+      <p>仕事をする上で、生きていく上で。人間関係やコミュニケーションのこと、毎日の仕事が少し進めやすくなること。そういう本を選んで、一冊ずつお届けします。</p>
+    </div>
+
+    <!-- 本はJSで配置する。中身は BOOKS 配列を足すだけ -->
+    <div class="orbit" id="orbit"></div>
+  </div>
+
+  <div class="space-hint" id="hint"><span>本をえらぶ</span></div>
+  <a class="space-down" href="#list" aria-label="記事一覧へ"></a>
+</section>
+
+<!-- ───── 要約パネル ───── -->
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sh-t" hidden>
+  <div class="sheet-bg" data-close></div>
+  <div class="sheet-box">
+    <button class="sheet-x" id="sheetX" aria-label="閉じる"></button>
+    <div class="sheet-cover"><img id="sh-img" src="" alt=""></div>
+    <div class="sheet-body">
+      <div class="sh-n" id="sh-n"></div>
+      <h2 class="sh-t" id="sh-t"></h2>
+      <div class="sh-a" id="sh-a"></div>
+      <p class="sh-c" id="sh-c"></p>
+      <div class="sh-sum" id="sh-sum"></div>
+      <a class="sh-go" id="sh-go" href="">記事を読む</a>
+    </div>
+  </div>
 </div>
 
-<div class="list">
+<div class="list" id="list">
 
   <div class="sec-h">記事</div>
 
@@ -88,6 +119,202 @@
 <footer>
   <span>ソードワンダイアリー</span><span>株式会社ソードワン</span><span>記事中の引用はすべて出典を明記しています</span>
 </footer>
+
+<script>
+/* ===========================================================
+   宇宙のトップページ
+   本を足すときは BOOKS の先頭に1つ追加するだけ。
+   配置・大きさ・浮き方は冊数に合わせて自動で決まる。
+   =========================================================== */
+
+const BOOKS = [
+  {
+    n: '#02', cat: '考え方',
+    title: 'パワーか、フォースか 改訂版',
+    author: 'デヴィッド・R・ホーキンズ／ナチュラルスピリット',
+    cover: 'img/cover02_sm.webp',
+    url: 'power.html',
+    katch: '同じ「やりたい」でも、続く人と続かない人がいる。',
+    sum: [
+      '本は、人を動かす力を2つに分けます。<b>フォース</b>は押す力。<b>パワー</b>は引きつける力。',
+      'フォースには燃料がいります。押せば相手も押し返すので、続けるほど減っていく。パワーは外から支えなくても働き続ける。重力のように、そこにあるだけで物を動かします。',
+      '著者は意識のレベルを1〜1000の数値で並べ、<b>200を境界線</b>としました。「恥」は20、「勇気」は200、「愛」は500。200より下が、人を弱らせる側。',
+      '同じ行動でも、その根にあるのが「やらなきゃ」なのか「こうしたい」なのかで、続くかどうかが変わる。記事では、朝の掃除を例に考えています。'
+    ]
+  },
+  {
+    n: '#01', cat: 'コミュニケーション',
+    title: '新 コーチングが人を活かす',
+    author: '鈴木義幸／ディスカヴァー・トゥエンティワン',
+    cover: 'img/cover_sm.webp',
+    url: 'coaching.html',
+    katch: 'その「さすが」は、相手のところで止まっている。',
+    sum: [
+      'コーチングでは、相手をほめたり認めたりすることを<b>アクノレッジメント</b>と呼びます。本はそれを2種類に分けます。',
+      '「さすが」「すごいね」は、相手を<b>評価する</b>言い方。「助かった」「おかげで」は、相手の行動が自分にどう届いたかという<b>影響を伝える</b>言い方。',
+      '前者は、ほめられた人のところで完結します。後者は、自分の行動が誰かに届いたという情報が一緒に渡る。<b>矢印の向きが逆</b>なんです。',
+      'そして効く言葉は人によって違います。結果を出したい人には「さすが」が、人の役に立ちたい人には「助かった」が届く。記事では、社内で使っているコミュニケーションカードと重ねて考えています。'
+    ]
+  }
+];
+
+/* ---------- 配置 ---------- */
+/* 冊数で置き方を変える。少ないときは大きく中央寄り、
+   増えたら3つの層に分けて奥行きを出す。 */
+function slotsFor(count, narrow) {
+  if (count <= 2) {
+    return narrow
+      ? [[31, 51, 1.32], [70, 75, 1.14]]
+      : [[33, 47, 1.35], [68, 59, 1.16]];
+  }
+  if (count <= 4) {
+    return narrow
+      ? [[28, 36, 1.05], [72, 48, .95], [34, 70, 1.0], [74, 82, .88]]
+      : [[20, 50, 1.10], [43, 38, .98], [64, 56, 1.05], [86, 42, .88]];
+  }
+  /* 5冊以上。奥（小さく遅い）→手前（大きく速い）の3層 */
+  const far  = [[8,34,.60],[25,41,.58],[43,32,.62],[60,39,.57],[77,33,.60],[93,42,.55]];
+  const mid  = [[16,59,.82],[36,66,.78],[56,57,.84],[76,64,.79],[94,58,.76]];
+  const near = [[22,84,1.05],[46,89,1.0],[70,82,1.06],[91,88,.96]];
+  /* 新しい本ほど手前 */
+  return near.concat(mid, far);
+}
+
+const orbit = document.getElementById('orbit');
+const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function layout() {
+  const narrow = window.innerWidth < 720;
+  const slots = slotsFor(BOOKS.length, narrow);
+  orbit.innerHTML = '';
+  BOOKS.forEach((b, i) => {
+    const s = slots[i % slots.length];
+    const el = document.createElement('button');
+    el.className = 'bk';
+    el.type = 'button';
+    el.style.left = s[0] + '%';
+    el.style.top = s[1] + '%';
+    el.style.setProperty('--s', s[2]);
+    el.style.setProperty('--dur', (9 + (i % 5) * 1.7) + 's');
+    el.style.setProperty('--delay', (-i * 1.3) + 's');
+    el.style.setProperty('--tilt', ((i % 2 ? 1 : -1) * (1.5 + (i % 3) * .6)) + 'deg');
+    el.setAttribute('aria-label', b.title + ' の要約をひらく');
+    el.innerHTML = '<img src="' + b.cover + '" alt="" loading="' +
+      (i < 4 ? 'eager' : 'lazy') + '"><span class="bk-cap">' + b.n + '</span>';
+    el.addEventListener('click', () => open(i, el.querySelector('img')));
+    orbit.appendChild(el);
+  });
+}
+layout();
+
+let rz;
+window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(layout, 180); });
+
+/* ---------- 星 ---------- */
+const cv = document.getElementById('stars');
+const ctx = cv.getContext('2d');
+let stars = [], W = 0, H = 0, dpr = 1;
+
+function sizeStars() {
+  dpr = Math.min(window.devicePixelRatio || 1, 2);
+  W = cv.clientWidth; H = cv.clientHeight;
+  cv.width = W * dpr; cv.height = H * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const n = Math.round(Math.min(220, (W * H) / 5200));
+  stars = Array.from({ length: n }, () => ({
+    x: Math.random() * W, y: Math.random() * H,
+    r: Math.random() * 1.1 + .25,
+    a: Math.random() * .6 + .25,
+    tw: Math.random() * Math.PI * 2,
+    sp: Math.random() * .022 + .004
+  }));
+}
+
+function drawStars(t) {
+  ctx.clearRect(0, 0, W, H);
+  for (const s of stars) {
+    const tw = reduce ? 1 : (Math.sin(t / 900 + s.tw) * .35 + .65);
+    ctx.globalAlpha = s.a * tw;
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, 6.2832);
+    ctx.fillStyle = s.r > 1 ? '#CFE0FF' : '#fff';
+    ctx.fill();
+    if (!reduce) { s.y -= s.sp; if (s.y < -2) { s.y = H + 2; s.x = Math.random() * W; } }
+  }
+  ctx.globalAlpha = 1;
+}
+
+function loop(t) { drawStars(t); requestAnimationFrame(loop); }
+sizeStars();
+if (reduce) { drawStars(0); } else { requestAnimationFrame(loop); }
+window.addEventListener('resize', () => { clearTimeout(rz); setTimeout(() => { sizeStars(); if (reduce) drawStars(0); }, 180); });
+
+/* ---------- 要約パネル ---------- */
+const sheet = document.getElementById('sheet');
+const shImg = document.getElementById('sh-img');
+let lastFocus = null;
+
+function open(i, srcImg) {
+  const b = BOOKS[i];
+  document.getElementById('sh-n').textContent = b.n + '　' + b.cat;
+  document.getElementById('sh-t').textContent = b.title;
+  document.getElementById('sh-a').textContent = b.author;
+  document.getElementById('sh-c').textContent = b.katch;
+  document.getElementById('sh-sum').innerHTML = b.sum.map(p => '<p>' + p + '</p>').join('');
+  document.getElementById('sh-go').href = b.url;
+  shImg.src = b.cover;
+  shImg.alt = b.title + ' の書影';
+
+  lastFocus = document.activeElement;
+  sheet.hidden = false;
+  document.body.classList.add('locked');
+
+  /* 浮いていた本が、そのままパネルの位置まで大きくなる */
+  if (srcImg && !reduce && shImg.animate) {
+    const a = srcImg.getBoundingClientRect();
+    requestAnimationFrame(() => {
+      const b2 = shImg.getBoundingClientRect();
+      if (b2.width > 0) {
+        shImg.animate([
+          { transform: 'translate(' + (a.left - b2.left) + 'px,' + (a.top - b2.top) +
+            'px) scale(' + (a.width / b2.width) + ')', opacity: .85 },
+          { transform: 'none', opacity: 1 }
+        ], { duration: 460, easing: 'cubic-bezier(.22,.8,.26,1)' });
+      }
+      sheet.classList.add('on');
+    });
+  } else {
+    requestAnimationFrame(() => sheet.classList.add('on'));
+  }
+  setTimeout(() => document.getElementById('sheetX').focus(), 80);
+}
+
+function close() {
+  sheet.classList.remove('on');
+  document.body.classList.remove('locked');
+  setTimeout(() => { sheet.hidden = true; }, 260);
+  if (lastFocus) lastFocus.focus();
+}
+
+document.getElementById('sheetX').addEventListener('click', close);
+sheet.querySelector('[data-close]').addEventListener('click', close);
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && !sheet.hidden) close();
+});
+
+/* ---------- ヘッダーは宇宙を抜けてから出す ---------- */
+const hd = document.querySelector('.hd');
+new IntersectionObserver(
+  ([e]) => hd.classList.toggle('is-on', !e.isIntersecting),
+  { threshold: 0, rootMargin: '-72px 0px 0px 0px' }
+).observe(document.getElementById('space'));
+
+/* 少しスクロールしたら「本をえらぶ」を消す */
+const hint = document.getElementById('hint');
+addEventListener('scroll', () => {
+  hint.classList.toggle('gone', scrollY > 60);
+}, { passive: true });
+</script>
 
 </body>
 </html>
