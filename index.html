@@ -196,15 +196,34 @@ const BOOKS = [
    本を足すときは BOOKS に p:'<id>' を書くだけでその惑星に並ぶ。 */
 const PLANETS = [
   { id:'comm',  name:'コミュニケーション', sub:'伝え方・ほめ方・声かけ',
-    look:{ a:'#6FA8DC', b:'#1B3A66', c:'#B6DCF5', g:'96,164,232', ring:0 } },
+    look:{ g:'96,164,232', ring:0, turb:.62, detail:.45, cap:0,
+      bands:[[-1,'#122c52'],[-.62,'#1f4c87'],[-.26,'#3d78b6'],[.04,'#74b0de'],
+             [.34,'#4786bd'],[.68,'#235291'],[1,'#132f58']],
+      spot:{ lon:-0.85, lat:-0.22, rx:.26, ry:.13, col:'#0d2246', a:.5 } } },
+
   { id:'think', name:'考え方',             sub:'ものの見方・価値観',
-    look:{ a:'#D79A4A', b:'#5E3614', c:'#F3CE96', g:'222,154,66',  ring:1 } },
+    look:{ g:'222,154,66', ring:1, turb:1.25, detail:.8, cap:0,
+      bands:[[-1,'#6d4116'],[-.72,'#b8762c'],[-.46,'#efd4a0'],[-.2,'#9c5f22'],
+             [.02,'#f2dcb0'],[.26,'#c2853a'],[.56,'#e7c288'],[1,'#7a4a19']],
+      spot:{ lon:0.62, lat:0.2, rx:.22, ry:.105, col:'#cf5f3a', a:.62 } } },
+
   { id:'habit', name:'習慣',               sub:'毎日のやり方・仕組み',
-    look:{ a:'#6FBE92', b:'#1E4634', c:'#B6E8CC', g:'104,194,152', ring:0 } },
+    look:{ g:'104,194,152', ring:0, turb:.82, detail:.55, cap:.78,
+      bands:[[-1,'#143a2a'],[-.6,'#2a6349'],[-.24,'#58a37c'],[.06,'#93d2ae'],
+             [.4,'#3f8362'],[.72,'#1d4b37'],[1,'#123526']],
+      spot:null } },
+
   { id:'team',  name:'チーム',             sub:'人を育てる・組織',
-    look:{ a:'#A585D2', b:'#3A2660', c:'#D4BCF0', g:'162,126,218', ring:0 } },
+    look:{ g:'162,126,218', ring:0, turb:1.05, detail:.7, cap:0,
+      bands:[[-1,'#2b1b50'],[-.66,'#4a3280'],[-.3,'#8168c0'],[.02,'#b79ae2'],
+             [.3,'#6d52ad'],[.64,'#3a2668'],[1,'#261646']],
+      spot:{ lon:-0.3, lat:-0.34, rx:.18, ry:.09, col:'#d9c4f2', a:.4 } } },
+
   { id:'self',  name:'自分',               sub:'内省・在り方',
-    look:{ a:'#D78592', b:'#5A2430', c:'#F2B6BE', g:'214,126,142', ring:1 } }
+    look:{ g:'214,126,142', ring:1, turb:.9, detail:.6, cap:.72,
+      bands:[[-1,'#471c24'],[-.6,'#7e3a46'],[-.26,'#bd7682'],[.05,'#eeb0b9'],
+             [.36,'#9c505e'],[.7,'#5d2630'],[1,'#3f1920']],
+      spot:null } }
 ];
 
 /* これから書く本。惑星の上では灰色の「準備中」として並ぶ */
@@ -232,6 +251,176 @@ const narrow = () => window.innerWidth < 760;
 const itemsOf = id =>
   BOOKS.filter(b => b.p === id).map(b => ({ book:b }))
     .concat(SOON.filter(x => x.p === id).map(x => ({ soon:x })));
+
+/* 銀河の画面に出す小さな書影。実際の書影を新しい順に3つまで、
+   足りない分は薄いカードで埋める（惑星が寂しくならないように） */
+/* 球の中心から 62% のところに、右側の弧にそって並べる。x% , y% , 傾き */
+const MOON_POS = [[86,-1,-9],[110,35,6],[107,75,-4]];
+
+function moonsHTML(id) {
+  /* 実際にある書影だけ出す。空の枠を混ぜると不具合に見える */
+  return BOOKS.filter(b => b.p === id).slice(0, 3).map((b, k) =>
+    '<span class="mn" style="--mx:' + MOON_POS[k][0] + '%;--my:' + MOON_POS[k][1] +
+    '%;--mr:' + MOON_POS[k][2] + 'deg;--md:' + (k * 90) + 'ms">' +
+    '<img src="' + b.cover + '" alt=""></span>'
+  ).join('');
+}
+
+/* ═══════════════════════════════════════════════════
+   惑星を描く
+   球に見せるために、円の各ピクセルから球面の経緯度を逆算して
+   帯模様を拾い、そこへ光のあたり方（ランバート）と
+   周縁減光（ふちが暗くなる）を掛けている。
+   リングは球の後ろ半分→球→手前半分の順に描く。
+   1回描いたらあとは画像なので、毎フレームの負荷はない。
+   ═══════════════════════════════════════════════════ */
+const PX = 224;                     /* 球の描画解像度。表示サイズとは別 */
+const RINGK = 2.35;                 /* リングを含めた画布の倍率 */
+
+function hash2(x, y) {
+  let h = (x | 0) * 374761393 + (y | 0) * 668265263;
+  h = (h ^ (h >> 13)) * 1274126177;
+  return ((h ^ (h >> 16)) >>> 0) / 4294967295;
+}
+function vnoise(x, y) {
+  const xi = Math.floor(x), yi = Math.floor(y);
+  const xf = x - xi, yf = y - yi;
+  const u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf);
+  return hash2(xi, yi) * (1 - u) * (1 - v) + hash2(xi + 1, yi) * u * (1 - v) +
+         hash2(xi, yi + 1) * (1 - u) * v + hash2(xi + 1, yi + 1) * u * v;
+}
+function fbm(x, y, oct) {
+  let s = 0, a = .5, f = 1;
+  for (let i = 0; i < oct; i++) { s += a * vnoise(x * f, y * f); f *= 2; a *= .5; }
+  return s;
+}
+const hex = c => [parseInt(c.slice(1, 3), 16),
+                  parseInt(c.slice(3, 5), 16),
+                  parseInt(c.slice(5, 7), 16)];
+
+function bandColor(stops, t) {
+  for (let i = 1; i < stops.length; i++) {
+    if (t <= stops[i][0]) {
+      const a = stops[i - 1], b = stops[i];
+      const k = (t - a[0]) / (b[0] - a[0] || 1);
+      const ca = hex(a[1]), cb = hex(b[1]);
+      return [ca[0] + (cb[0] - ca[0]) * k,
+              ca[1] + (cb[1] - ca[1]) * k,
+              ca[2] + (cb[2] - ca[2]) * k];
+    }
+  }
+  return hex(stops[stops.length - 1][1]);
+}
+
+function drawPlanet(cv, look) {
+  if (!cv) return;
+  const S = Math.round(PX * RINGK);
+  cv.width = S; cv.height = S;
+  const g = cv.getContext('2d');
+  const CX = S / 2, R = PX / 2;
+
+  if (look.ring) drawRing(g, CX, R, look, 'back');
+
+  /* ---- 球 ---- */
+  const sp = document.createElement('canvas');
+  sp.width = sp.height = PX;
+  const sg = sp.getContext('2d');
+  const im = sg.createImageData(PX, PX);
+  const d = im.data;
+
+  /* 光は左上から */
+  const lx = -.46, ly = -.40, lz = .79;
+
+  for (let y = 0; y < PX; y++) {
+    for (let x = 0; x < PX; x++) {
+      const nx = (x - R + .5) / R, ny = (y - R + .5) / R;
+      const d2 = nx * nx + ny * ny;
+      const o = (y * PX + x) * 4;
+      if (d2 >= 1) { d[o + 3] = 0; continue; }
+      const nz = Math.sqrt(1 - d2);
+
+      /* 画面の点から球面の経緯度へ */
+      const lon = Math.atan2(nx, nz);
+      const lat = Math.asin(Math.max(-1, Math.min(1, ny)));
+      const la = lat / 1.5708;                       /* -1..1 */
+
+      /* 帯をゆらす。まっすぐな縞だと作り物に見える */
+      const warp = (fbm(lon * 1.6 + 8, la * 3.4 + 3, 3) - .5) * .30 * look.turb;
+      let col = bandColor(look.bands, Math.max(-1, Math.min(1, la + warp)));
+
+      /* 細かい乱流 */
+      const det = (fbm(lon * 7 + 20, la * 17 + 11, 3) - .5) * 42 * look.detail;
+      col = [col[0] + det, col[1] + det, col[2] + det];
+
+      /* 大赤斑のような渦 */
+      if (look.spot) {
+        const sx = (lon - look.spot.lon) / look.spot.rx;
+        const sy = (la - look.spot.lat) / look.spot.ry;
+        const sd = sx * sx + sy * sy;
+        if (sd < 1) {
+          const k = Math.pow(1 - sd, .7) * look.spot.a;
+          const sc = hex(look.spot.col);
+          col = [col[0] + (sc[0] - col[0]) * k,
+                 col[1] + (sc[1] - col[1]) * k,
+                 col[2] + (sc[2] - col[2]) * k];
+        }
+      }
+
+      /* 極冠 */
+      if (look.cap) {
+        const k = Math.max(0, (Math.abs(la) - look.cap) / (1 - look.cap));
+        if (k > 0) {
+          const w = Math.pow(k, .6) * .88;
+          col = [col[0] + (242 - col[0]) * w,
+                 col[1] + (246 - col[1]) * w,
+                 col[2] + (255 - col[2]) * w];
+        }
+      }
+
+      /* 光のあたり方 */
+      let lam = nx * lx + ny * ly + nz * lz;
+      lam = lam > 0 ? Math.pow(lam, .78) : 0;
+      const light = .055 + .945 * lam;
+      /* 周縁減光。ふちが暗いと球に見える */
+      const limb = .42 + .58 * Math.pow(nz, .42);
+      /* 明るい側のふちだけ大気が光る */
+      const rim = Math.pow(1 - nz, 4.2) * Math.max(0, lam) * 150;
+
+      const f = light * limb;
+      d[o]     = Math.max(0, Math.min(255, col[0] * f + rim * .62));
+      d[o + 1] = Math.max(0, Math.min(255, col[1] * f + rim * .80));
+      d[o + 2] = Math.max(0, Math.min(255, col[2] * f + rim));
+      d[o + 3] = 255;
+    }
+  }
+  sg.putImageData(im, 0, 0);
+  g.drawImage(sp, CX - R, CX - R);
+
+  if (look.ring) drawRing(g, CX, R, look, 'front');
+}
+
+/* リング。後ろ半分と手前半分に分けて、間に球を挟む */
+function drawRing(g, C, R, look, half) {
+  const tilt = -0.30, flat = 0.21;
+  g.save();
+  g.translate(C, C);
+  g.rotate(tilt);
+  g.scale(1, flat);
+  if (half === 'back') { g.beginPath(); g.rect(-C * 3, -C * 3, C * 6, C * 3); g.clip(); }
+  else                 { g.beginPath(); g.rect(-C * 3, 0,      C * 6, C * 3); g.clip(); }
+
+  const bands = [[1.30, 1.52, .30], [1.56, 1.62, .10], [1.66, 1.92, .42],
+                 [1.95, 2.00, .16], [2.03, 2.14, .22]];
+  for (const b of bands) {
+    for (let r = b[0]; r < b[1]; r += .008) {
+      const n = .72 + vnoise(r * 90, 4) * .55;
+      g.strokeStyle = 'rgba(238,230,214,' + (b[2] * n * .5) + ')';
+      g.lineWidth = R * .010;
+      g.beginPath(); g.arc(0, 0, R * r, 0, 6.2832); g.stroke();
+    }
+  }
+  g.restore();
+}
 
 /* ───────── 惑星を置く ───────── */
 /* 上部は見出しが入るので、y は 40%% より下だけを使う */
@@ -262,7 +451,8 @@ function buildPlanets() {
     el.setAttribute('aria-label', pl.name + ' の本をひらく');
     el.innerHTML =
       '<span class="pl-in">' +
-        '<span class="pl-ball"><span class="pl-ring"></span></span>' +
+        '<span class="pl-ball"><canvas class="pl-cv"></canvas></span>' +
+        '<span class="pl-moons">' + moonsHTML(pl.id) + '</span>' +
         '<span class="pl-label">' +
           '<span class="pl-name">' + pl.name + '</span>' +
           '<span class="pl-n">' + n + '冊</span>' +
@@ -271,6 +461,7 @@ function buildPlanets() {
     el.addEventListener('click', () => focus(i));
     orbit.appendChild(el);
     pEls.push(el);
+    drawPlanet(el.querySelector('.pl-cv'), pl.look);
     setTimeout(() => el.querySelector('.pl-in').classList.add('in'), 300 + i * 150);
   });
 }
