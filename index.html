@@ -33,18 +33,26 @@
   <canvas class="stars" id="stars" aria-hidden="true"></canvas>
 
   <div class="space-in">
-    <div class="space-copy">
+    <div class="space-copy" id="copy">
       <div class="space-logo">SWORD ONE DIARY</div>
       <h1>読んだ本と、そこで考えたこと</h1>
       <p>仕事をする上で、生きていく上で。人間関係やコミュニケーションのこと、毎日の仕事が少し進めやすくなること。そういう本を選んで、一冊ずつお届けします。</p>
     </div>
 
-    <!-- 本はJSで配置する。中身は BOOKS 配列を足すだけ -->
+    <!-- 惑星＝カテゴリ。JSで配置する -->
     <div class="orbit" id="orbit"></div>
+
+    <!-- 選んだ惑星の本。惑星のまわりを回っている -->
+    <div class="sys" id="sys" hidden>
+      <div class="sys-ring" id="sysRing" aria-hidden="true"></div>
+      <div class="sys-books" id="sysBooks"></div>
+      <div class="sys-head" id="sysHead"></div>
+    </div>
   </div>
 
+  <button class="space-back" id="back" hidden>銀河にもどる</button>
   <div class="grain" aria-hidden="true"></div>
-  <div class="space-hint" id="hint"><span>本をえらぶ</span></div>
+  <div class="space-hint" id="hint"><span>カテゴリをえらぶ</span></div>
   <a class="space-down" href="#list" aria-label="記事一覧へ"></a>
 </section>
 
@@ -139,7 +147,7 @@
 
 const BOOKS = [
   {
-    n: '#02', cat: '考え方',
+    n: '#02', cat: '考え方', p: 'think',
     title: 'パワーか、フォースか 改訂版',
     author: 'デヴィッド・R・ホーキンズ／ナチュラルスピリット',
     cover: 'img/cover02_sm.webp',
@@ -161,7 +169,7 @@ const BOOKS = [
     ]
   },
   {
-    n: '#01', cat: 'コミュニケーション',
+    n: '#01', cat: 'コミュニケーション', p: 'comm',
     title: '新 コーチングが人を活かす',
     author: '鈴木義幸／ディスカヴァー・トゥエンティワン',
     cover: 'img/cover_sm.webp',
@@ -184,125 +192,320 @@ const BOOKS = [
   }
 ];
 
-/* ---------- 配置 ---------- */
-/* 冊数で置き方を変える。少ないときは大きく中央寄り、
-   増えたら3つの層に分けて奥行きを出す。 */
-function slotsFor(count, narrow) {
-  if (count <= 2) {
-    return narrow
-      ? [[30, 50, 1.46], [71, 76, 1.22]]
-      : [[26, 52, 1.60], [72, 64, 1.30]];
-  }
-  if (count <= 4) {
-    return narrow
-      ? [[28, 36, 1.05], [72, 48, .95], [34, 70, 1.0], [74, 82, .88]]
-      : [[20, 50, 1.10], [43, 38, .98], [64, 56, 1.05], [86, 42, .88]];
-  }
-  /* 5冊以上。奥（小さく遅い）→手前（大きく速い）の3層 */
-  const far  = [[8,34,.60],[25,41,.58],[43,32,.62],[60,39,.57],[77,33,.60],[93,42,.55]];
-  const mid  = [[16,59,.82],[36,66,.78],[56,57,.84],[76,64,.79],[94,58,.76]];
-  const near = [[22,84,1.05],[46,89,1.0],[70,82,1.06],[91,88,.96]];
-  /* 新しい本ほど手前 */
-  return near.concat(mid, far);
-}
+/* 惑星＝カテゴリ。look は見た目（CSS変数に流す）。
+   本を足すときは BOOKS に p:'<id>' を書くだけでその惑星に並ぶ。 */
+const PLANETS = [
+  { id:'comm',  name:'コミュニケーション', sub:'伝え方・ほめ方・声かけ',
+    look:{ a:'#6FA8DC', b:'#1B3A66', c:'#B6DCF5', g:'96,164,232', ring:0 } },
+  { id:'think', name:'考え方',             sub:'ものの見方・価値観',
+    look:{ a:'#D79A4A', b:'#5E3614', c:'#F3CE96', g:'222,154,66',  ring:1 } },
+  { id:'habit', name:'習慣',               sub:'毎日のやり方・仕組み',
+    look:{ a:'#6FBE92', b:'#1E4634', c:'#B6E8CC', g:'104,194,152', ring:0 } },
+  { id:'team',  name:'チーム',             sub:'人を育てる・組織',
+    look:{ a:'#A585D2', b:'#3A2660', c:'#D4BCF0', g:'162,126,218', ring:0 } },
+  { id:'self',  name:'自分',               sub:'内省・在り方',
+    look:{ a:'#D78592', b:'#5A2430', c:'#F2B6BE', g:'214,126,142', ring:1 } }
+];
 
-const orbit = document.getElementById('orbit');
+/* これから書く本。惑星の上では灰色の「準備中」として並ぶ */
+const SOON = [
+  { p:'comm',  title:'たった1分で相手をやる気にさせる話術 ペップトーク' },
+  { p:'habit', title:'完訳 7つの習慣 人格主義の回復' },
+  { p:'think', title:'準備中' },
+  { p:'team',  title:'準備中' },
+  { p:'team',  title:'準備中' },
+  { p:'self',  title:'準備中' },
+  { p:'self',  title:'準備中' }
+];
+
 const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const orbit   = document.getElementById('orbit');
+const sys     = document.getElementById('sys');
+const sysRing = document.getElementById('sysRing');
+const sysBooks= document.getElementById('sysBooks');
+const sysHead = document.getElementById('sysHead');
+const backBtn = document.getElementById('back');
+const hint    = document.getElementById('hint');
+const spEl    = document.getElementById('space');
 
-function layout() {
-  const narrow = window.innerWidth < 720;
-  const slots = slotsFor(BOOKS.length, narrow);
+const narrow = () => window.innerWidth < 760;
+const itemsOf = id =>
+  BOOKS.filter(b => b.p === id).map(b => ({ book:b }))
+    .concat(SOON.filter(x => x.p === id).map(x => ({ soon:x })));
+
+/* ───────── 惑星を置く ───────── */
+/* 上部は見出しが入るので、y は 40%% より下だけを使う */
+const P_SLOTS_W = [[14,49,1.06],[33,72,.80],[54,44,.92],[75,68,1.18],[91,41,.64]];
+const P_SLOTS_N = [[26,45,1.00],[71,56,.82],[35,69,.92],[75,81,.72],[17,85,.56]];
+
+let pEls = [], focused = -1;
+
+function buildPlanets() {
   orbit.innerHTML = '';
-  BOOKS.forEach((b, i) => {
-    const s = slots[i % slots.length];
+  pEls = [];
+  const slots = narrow() ? P_SLOTS_N : P_SLOTS_W;
+  PLANETS.forEach((pl, i) => {
+    const sl = slots[i % slots.length];
+    const n  = itemsOf(pl.id).length;
     const el = document.createElement('button');
-    el.className = 'bk';
+    el.className = 'pl' + (pl.look.ring ? ' has-ring' : '');
     el.type = 'button';
-    el.style.left = s[0] + '%';
-    el.style.top = s[1] + '%';
-    el.style.setProperty('--s', s[2]);
-    el.style.setProperty('--dur', (9 + (i % 5) * 1.7) + 's');
-    el.style.setProperty('--delay', (-i * 1.3) + 's');
-    el.style.setProperty('--tilt', ((i % 2 ? 1 : -1) * (1.5 + (i % 3) * .6)) + 'deg');
-    el.setAttribute('aria-label', b.title + ' の要約をひらく');
+    el.style.left = sl[0] + '%';
+    el.style.top  = sl[1] + '%';
+    el.style.setProperty('--s',  sl[2]);
+    el.style.setProperty('--a',  pl.look.a);
+    el.style.setProperty('--b',  pl.look.b);
+    el.style.setProperty('--c',  pl.look.c);
+    el.style.setProperty('--g',  pl.look.g);
+    el.style.setProperty('--dur', (13 + (i % 4) * 2.4) + 's');
+    el.style.setProperty('--delay', (-i * 1.9) + 's');
+    el.setAttribute('aria-label', pl.name + ' の本をひらく');
     el.innerHTML =
-      '<span class="bk-in">' +
-        '<span class="bk-img">' +
-          '<img src="' + b.cover + '" alt="" loading="' + (i < 4 ? 'eager' : 'lazy') + '">' +
-          '<span class="bk-rim"></span>' +
+      '<span class="pl-in">' +
+        '<span class="pl-ball"><span class="pl-ring"></span></span>' +
+        '<span class="pl-label">' +
+          '<span class="pl-name">' + pl.name + '</span>' +
+          '<span class="pl-n">' + n + '冊</span>' +
         '</span>' +
-        '<span class="bk-cap">' + b.n + '</span>' +
       '</span>';
-    el.addEventListener('click', () => open(i, el.querySelector('img')));
+    el.addEventListener('click', () => focus(i));
     orbit.appendChild(el);
-    /* 奥から順に、ぼけた状態から浮かび上がってくる */
-    setTimeout(() => el.querySelector('.bk-in').classList.add('in'), 240 + i * 130);
+    pEls.push(el);
+    setTimeout(() => el.querySelector('.pl-in').classList.add('in'), 300 + i * 150);
   });
 }
-layout();
 
+/* ───────── 惑星を選ぶ ───────── */
+function target() {
+  const r = spEl.getBoundingClientRect();
+  return { x: r.width * .5, y: r.height * (narrow() ? .30 : .34), w: r.width, h: r.height };
+}
+
+function focus(i) {
+  focused = i;
+  const T = target();
+
+  pEls.forEach((el, k) => {
+    if (k === i) {
+      /* 今いる場所から中央へ寄せる */
+      const r = el.getBoundingClientRect();
+      const sr = spEl.getBoundingClientRect();
+      const cx = r.left - sr.left + r.width / 2;
+      const cy = el.offsetTop;
+      el.style.setProperty('--tx', (T.x - cx) + 'px');
+      el.style.setProperty('--ty', (T.y - cy) + 'px');
+      el.classList.add('is-active');
+      el.classList.remove('is-off');
+    } else {
+      el.classList.add('is-off');
+      el.classList.remove('is-active');
+    }
+  });
+
+  const pl = PLANETS[i];
+  const items = itemsOf(pl.id);
+  const rx = Math.min(T.w * (narrow() ? .40 : .30), narrow() ? 158 : 280);
+  const ry = rx * .32;
+
+  sys.style.left = T.x + 'px';
+  sys.style.top  = T.y + 'px';
+  sysRing.style.width  = (rx * 2) + 'px';
+  sysRing.style.height = (ry * 2) + 'px';
+  sysHead.style.transform = 'translate(-50%,' + (ry + 54) + 'px)';
+  sysHead.innerHTML =
+    '<div class="sys-t">' + pl.name + '</div>' +
+    '<div class="sys-s">' + pl.sub + '</div>';
+
+  sysBooks.innerHTML = '';
+  const n = items.length;
+  items.forEach((it, k) => {
+    /* 3冊までは手前の弧（30°〜150°）に並べる。真上に置くと惑星の裏に隠れる。
+       4冊以上になったら一周させて、奥のものは小さく薄くする */
+    const deg = n <= 3
+      ? (n === 1 ? 90 : 30 + k * (120 / (n - 1)))
+      : 90 + k * (360 / n);
+    const ang = deg * Math.PI / 180;
+    const x = rx * Math.cos(ang), y = ry * Math.sin(ang);
+    const d = (Math.sin(ang) + 1) / 2;          /* 0=奥 1=手前 */
+    const el = document.createElement(it.book ? 'button' : 'div');
+    el.className = 'ob' + (it.soon ? ' is-soon' : '');
+    if (it.book) el.type = 'button';
+    el.style.transform = 'translate(-50%,-50%) translate(' + x + 'px,' + y + 'px)';
+    el.style.setProperty('--z', (.74 + d * .34).toFixed(3));
+    el.style.opacity = (.5 + d * .5).toFixed(2);
+    el.style.zIndex = Math.round(10 + d * 20);
+    el.style.setProperty('--delay2', (k * 70) + 'ms');
+
+    if (it.book) {
+      const b = it.book;
+      el.setAttribute('aria-label', b.title + ' の要約をひらく');
+      el.innerHTML = '<span class="ob-in"><img src="' + b.cover + '" alt="">' +
+                     '<span class="ob-rim"></span></span>' +
+                     '<span class="ob-cap">' + b.n + '</span>';
+      el.addEventListener('click', ev => {
+        ev.stopPropagation();
+        open(BOOKS.indexOf(b), el.querySelector('img'));
+      });
+    } else {
+      el.innerHTML = '<span class="ob-in ob-empty"></span>' +
+                     '<span class="ob-cap">準備中</span>';
+      el.title = it.soon.title;
+    }
+    sysBooks.appendChild(el);
+    requestAnimationFrame(() => setTimeout(() => el.classList.add('in'), 120 + k * 70));
+  });
+
+  sys.hidden = false;
+  requestAnimationFrame(() => sys.classList.add('on'));
+  spEl.classList.add('focused');
+  backBtn.hidden = false;
+  hint.classList.add('gone');
+  setTimeout(() => backBtn.focus(), 60);
+}
+
+function unfocus() {
+  focused = -1;
+  pEls.forEach(el => el.classList.remove('is-active', 'is-off'));
+  sys.classList.remove('on');
+  setTimeout(() => { sys.hidden = true; }, 340);
+  spEl.classList.remove('focused');
+  backBtn.hidden = true;
+  if (scrollY < 60) hint.classList.remove('gone');
+}
+
+backBtn.addEventListener('click', unfocus);
+spEl.addEventListener('click', e => {
+  if (focused >= 0 && !e.target.closest('.pl, .ob, .space-back')) unfocus();
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && focused >= 0 && document.getElementById('sheet').hidden) unfocus();
+});
+
+buildPlanets();
 let rz;
-window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(layout, 180); });
+addEventListener('resize', () => {
+  clearTimeout(rz);
+  rz = setTimeout(() => { if (focused < 0) buildPlanets(); else focus(focused); }, 200);
+});
 
 /* ===========================================================
-   星空
-   1枚のcanvasに、下から順に重ねて描く。
-     背景グラデ → 星雲（低解像度で作り置き）→ 天の川 →
-     星3層（視差つき）→ 明るい星（スプライト）→ 流れ星 → 手前の塵
-   星雲と明るい星は毎フレーム作らず、作り置きした画像を貼るだけ。
-   画面外・タブ非表示のときはループを止める。
+   背景：渦巻銀河と星
+   銀河・星雲・明るい星は作り置きした画像を貼るだけ。毎フレーム描かない。
+   画面外・タブ非表示では描画を止める。
    =========================================================== */
 const cv  = document.getElementById('stars');
 const ctx = cv.getContext('2d', { alpha: false });
 
 let W = 0, H = 0, dpr = 1;
-let neb = null, bgGrad = null, layers = [], bright = [], motes = [];
-let shoot = null, nextShoot = 4200;
-let px = 0, py = 0, tx = 0, ty = 0;      /* 視差。px/py=現在値、tx/ty=目標値 */
-let scrollK = 0, visible = true;
+let gal = null, far = null, neb = null, bgGrad = null;
+let layers = [], bright = [], motes = [];
+let shoot = null, nextShoot = 4200, spin = 0;
+let px = 0, py = 0, tx = 0, ty = 0, scrollK = 0, visible = true;
 
 const TINT = ['#FFFFFF','#FFFFFF','#FFFFFF','#FFFFFF',
               '#D7E4FF','#BFD3FF','#A8C4FF','#FFE6C2','#FFD39B'];
 const rnd  = (a, b) => a + Math.random() * (b - a);
 const pick = a => a[(Math.random() * a.length) | 0];
+/* ゆるい正規分布。腕のまわりに星を散らすのに使う */
+const gauss = () => (Math.random() + Math.random() + Math.random() - 1.5) * .92;
 
-/* ---- 星雲：小さく描いて拡大する。ぼけるので逆に自然になる ---- */
+/* ---- 渦巻銀河 ---- */
+function buildGalaxy(size, arms, dense) {
+  const c = document.createElement('canvas');
+  c.width = c.height = size;
+  const g = c.getContext('2d');
+  const C = size / 2;
+  g.globalCompositeOperation = 'lighter';
+
+  /* ハロー（円盤の広がり） */
+  let rg = g.createRadialGradient(C, C, 0, C, C, C);
+  rg.addColorStop(0,   'rgba(150,172,232,.17)');
+  rg.addColorStop(.30, 'rgba(112,142,220,.075)');
+  rg.addColorStop(.68, 'rgba(90,120,200,.02)');
+  rg.addColorStop(1,   'rgba(90,120,200,0)');
+  g.fillStyle = rg;
+  g.beginPath(); g.arc(C, C, C, 0, 6.2832); g.fill();
+
+  /* 渦状腕。対数螺旋にそって星を撒く */
+  const Rmin = size * .05, Rmax = size * .465, turns = 1.42;
+  for (let k = 0; k < arms; k++) {
+    for (let i = 0; i < dense; i++) {
+      const t  = Math.pow(Math.random(), .62);
+      const th = t * turns * 6.2832 + k * (6.2832 / arms) + gauss() * .09;
+      const r  = Rmin + (Rmax - Rmin) * t;
+      const sp = size * .013 + size * .052 * t;
+      const x  = C + (r + gauss() * sp) * Math.cos(th);
+      const y  = C + (r + gauss() * sp) * Math.sin(th);
+      /* 内側は古い星で暖色、外側は若い星で青白 */
+      const R2 = Math.round(255 - t * 96);
+      const G2 = Math.round(226 - t * 28);
+      const B2 = Math.round(170 + t * 85);
+      g.globalAlpha = (.5 - t * .34) * rnd(.45, 1);
+      g.fillStyle = 'rgb(' + R2 + ',' + G2 + ',' + B2 + ')';
+      g.beginPath(); g.arc(x, y, rnd(.35, 1.15), 0, 6.2832); g.fill();
+    }
+    /* 星がうまれている場所。ピンクの粒があると一気に銀河に見える */
+    for (let i = 0; i < dense / 46; i++) {
+      const t  = rnd(.3, 1);
+      const th = t * turns * 6.2832 + k * (6.2832 / arms) + gauss() * .07;
+      const r  = Rmin + (Rmax - Rmin) * t;
+      const sp = size * .03 * t;
+      const x  = C + (r + gauss() * sp) * Math.cos(th);
+      const y  = C + (r + gauss() * sp) * Math.sin(th);
+      const rr = rnd(1.6, 3.6);
+      const pg = g.createRadialGradient(x, y, 0, x, y, rr);
+      pg.addColorStop(0, 'rgba(255,164,196,.5)');
+      pg.addColorStop(1, 'rgba(255,120,170,0)');
+      g.globalAlpha = 1;
+      g.fillStyle = pg;
+      g.beginPath(); g.arc(x, y, rr, 0, 6.2832); g.fill();
+    }
+  }
+  g.globalAlpha = 1;
+
+  /* ダストレーン。腕の内側を少しだけ削ると立体に見える */
+  g.globalCompositeOperation = 'destination-out';
+  for (let k = 0; k < arms; k++) {
+    for (let i = 0; i < dense / 7; i++) {
+      const t  = Math.pow(Math.random(), .7);
+      const th = t * turns * 6.2832 + k * (6.2832 / arms) - .20 + gauss() * .05;
+      const r  = Rmin + (Rmax - Rmin) * t;
+      const sp = size * .012 + size * .026 * t;
+      const x  = C + (r + gauss() * sp) * Math.cos(th);
+      const y  = C + (r + gauss() * sp) * Math.sin(th);
+      g.globalAlpha = .07 * (1 - t * .4);
+      g.beginPath(); g.arc(x, y, rnd(1.4, 4.4), 0, 6.2832); g.fill();
+    }
+  }
+  g.globalAlpha = 1;
+
+  /* 中心のふくらみ */
+  g.globalCompositeOperation = 'lighter';
+  rg = g.createRadialGradient(C, C, 0, C, C, size * .135);
+  rg.addColorStop(0,   'rgba(255,250,238,.95)');
+  rg.addColorStop(.16, 'rgba(255,234,190,.62)');
+  rg.addColorStop(.44, 'rgba(240,186,120,.2)');
+  rg.addColorStop(1,   'rgba(230,170,110,0)');
+  g.fillStyle = rg;
+  g.beginPath(); g.arc(C, C, size * .135, 0, 6.2832); g.fill();
+  return c;
+}
+
+/* ---- 残りの星雲。銀河のまわりに色みを足すだけ ---- */
 function buildNebula() {
-  const sc = .32;
+  const sc = .3;
   const c = document.createElement('canvas');
   c.width  = Math.max(4, Math.round(W * sc));
   c.height = Math.max(4, Math.round(H * sc));
   const g = c.getContext('2d');
-  g.fillStyle = '#000';
-  g.fillRect(0, 0, c.width, c.height);
+  g.fillStyle = '#000'; g.fillRect(0, 0, c.width, c.height);
   g.globalCompositeOperation = 'lighter';
-
-  /* 天の川（斜めの淡い帯）。これがあると一気に宇宙に見える */
-  g.save();
-  g.translate(c.width * .52, c.height * .46);
-  g.rotate(-0.46);
-  const bw = c.width * 2.0, bh = c.height * .46;
-  const lg = g.createLinearGradient(0, -bh / 2, 0, bh / 2);
-  lg.addColorStop(0,   'rgba(126,158,224,0)');
-  lg.addColorStop(.38, 'rgba(142,168,230,.05)');
-  lg.addColorStop(.50, 'rgba(178,200,246,.105)');
-  lg.addColorStop(.56, 'rgba(120,140,200,.035)');
-  lg.addColorStop(.66, 'rgba(146,172,232,.055)');
-  lg.addColorStop(1,   'rgba(126,158,224,0)');
-  g.fillStyle = lg;
-  g.fillRect(-bw / 2, -bh / 2, bw, bh);
-  g.restore();
-
-  /* 星雲の塊。サイトの紺と橙を混ぜて、よそのテンプレに見えないようにする */
   const blobs = [
-    [.84, .10, .40, '56,94,176',  .30],
-    [.72, .22, .22, '96,134,215', .22],
-    [.12, .22, .34, '38,66,138',  .24],
-    [.22, .34, .17, '60,100,180', .16],
-    [.31, .86, .40, '96,66,148',  .13],
-    [.70, .76, .30, '186,116,44', .10],
-    [-.02,.60, .26, '28,92,146',  .14],
-    [.52, .46, .20, '66,104,190', .10]
+    [.86, .12, .34, '52,88,170',  .22],
+    [.10, .20, .30, '36,62,132',  .20],
+    [.26, .40, .15, '58,96,176',  .12],
+    [.70, .52, .22, '150,96,180', .09],
+    [-.04,.66, .24, '26,88,142',  .12]
   ];
   for (const b of blobs) {
     const cx = b[0] * c.width, cy = b[1] * c.height;
@@ -317,7 +520,6 @@ function buildNebula() {
   return c;
 }
 
-/* ---- 明るい星：グロー＋十字の光条を1枚の画像にしておく ---- */
 function buildBright(size, tint) {
   const c = document.createElement('canvas');
   c.width = c.height = size;
@@ -328,23 +530,20 @@ function buildBright(size, tint) {
   rg.addColorStop(.055, tint);
   rg.addColorStop(.17,  'rgba(168,196,255,.16)');
   rg.addColorStop(1,    'rgba(168,196,255,0)');
-  g.fillStyle = rg;
-  g.fillRect(0, 0, size, size);
-
+  g.fillStyle = rg; g.fillRect(0, 0, size, size);
   g.globalCompositeOperation = 'lighter';
   const sg = g.createLinearGradient(0, 0, size, 0);
   sg.addColorStop(0,  'rgba(206,226,255,0)');
   sg.addColorStop(.5, 'rgba(232,242,255,.38)');
   sg.addColorStop(1,  'rgba(206,226,255,0)');
   for (let k = 0; k < 2; k++) {
-    g.save();
-    g.translate(r, r); g.rotate(k * Math.PI / 2); g.translate(-r, -r);
-    g.fillStyle = sg;
-    g.fillRect(0, r - .55, size, 1.1);
-    g.restore();
+    g.save(); g.translate(r, r); g.rotate(k * Math.PI / 2); g.translate(-r, -r);
+    g.fillStyle = sg; g.fillRect(0, r - .55, size, 1.1); g.restore();
   }
   return c;
 }
+
+const GAL = { tilt: -0.40, flat: 0.40 };
 
 function build() {
   W = cv.clientWidth; H = cv.clientHeight;
@@ -355,17 +554,23 @@ function build() {
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
   bgGrad = ctx.createLinearGradient(0, 0, W * .3, H);
-  bgGrad.addColorStop(0,   '#0A1226');
-  bgGrad.addColorStop(.38, '#050A16');
+  bgGrad.addColorStop(0,   '#09111F');
+  bgGrad.addColorStop(.38, '#050A14');
   bgGrad.addColorStop(1,   '#01030A');
 
+  const small = W < 760;
+  GAL.size = small ? W * 2.0 : W * 1.15;
+  GAL.x = small ? W * .56 : W * .63;
+  GAL.y = small ? H * .90 : H * .87;
+  gal = buildGalaxy(small ? 560 : 760, 2, small ? 4200 : 7600);
+  far = buildGalaxy(190, 2, 700);
   neb = buildNebula();
 
   const area = W * H;
   const defs = [
-    { p: .06, n: Math.min(300, area / 3200),  r0: .22, r1: .70,  a0: .16, a1: .46, sp: .003 },
-    { p: .18, n: Math.min(150, area / 8200),  r0: .45, r1: 1.10, a0: .28, a1: .76, sp: .010 },
-    { p: .40, n: Math.min(54,  area / 24000), r0: .85, r1: 1.65, a0: .46, a1: 1.0, sp: .020 }
+    { p:.06, n: Math.min(280, area / 3400), r0:.22, r1:.70,  a0:.14, a1:.42, sp:.003 },
+    { p:.18, n: Math.min(140, area / 8600), r0:.45, r1:1.10, a0:.26, a1:.72, sp:.010 },
+    { p:.40, n: Math.min(50,  area / 25000),r0:.85, r1:1.60, a0:.44, a1:1.0, sp:.020 }
   ];
   layers = defs.map(d => ({
     p: d.p, sp: d.sp,
@@ -376,34 +581,39 @@ function build() {
     }))
   }));
 
-  const nb = W < 760 ? 4 : 7;
-  bright = Array.from({ length: nb }, () => {
+  bright = Array.from({ length: small ? 4 : 7 }, () => {
     const sz = Math.round(rnd(26, 54));
-    return {
-      x: Math.random() * W, y: rnd(.06, .96) * H, sz,
-      img: buildBright(sz, pick(['rgba(255,255,255,.9)',
-                                 'rgba(198,220,255,.9)',
-                                 'rgba(255,228,190,.85)'])),
-      ph: Math.random() * 6.28, p: rnd(.2, .5)
-    };
+    return { x: Math.random() * W, y: rnd(.04, .82) * H, sz,
+             img: buildBright(sz, pick(['rgba(255,255,255,.9)',
+                                        'rgba(198,220,255,.9)',
+                                        'rgba(255,228,190,.85)'])),
+             ph: Math.random() * 6.28, p: rnd(.2, .5) };
   });
 
-  motes = Array.from({ length: W < 760 ? 7 : 12 }, () => ({
+  motes = Array.from({ length: small ? 6 : 11 }, () => ({
     x: Math.random() * W, y: Math.random() * H,
-    r: rnd(14, 44), a: rnd(.012, .035),
+    r: rnd(14, 44), a: rnd(.012, .032),
     vx: rnd(-.05, .05), vy: rnd(-.05, .05)
   }));
 }
 
 function spawnShoot() {
-  const fromLeft = Math.random() > .35;
-  shoot = {
-    x: fromLeft ? rnd(-.1, .45) * W : rnd(.6, 1.1) * W,
-    y: rnd(-.05, .45) * H,
-    vx: (fromLeft ? 1 : -1) * rnd(7, 12),
-    vy: rnd(3.2, 5.6),
-    life: 0, max: rnd(42, 74), len: rnd(90, 190)
-  };
+  const L = Math.random() > .35;
+  shoot = { x: L ? rnd(-.1, .45) * W : rnd(.6, 1.1) * W, y: rnd(-.05, .4) * H,
+            vx: (L ? 1 : -1) * rnd(7, 12), vy: rnd(3.2, 5.6),
+            life: 0, max: rnd(42, 74), len: rnd(90, 190) };
+}
+
+function drawGalaxy(img, cx, cy, size, a, extraSpin) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(GAL.tilt);
+  ctx.scale(1, GAL.flat);
+  ctx.rotate(spin * extraSpin);
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.globalAlpha = a;
+  ctx.drawImage(img, -size / 2, -size / 2, size, size);
+  ctx.restore();
 }
 
 function frame(t) {
@@ -412,52 +622,54 @@ function frame(t) {
 
   px += (tx - px) * .055;
   py += (ty - py) * .055;
+  if (!reduce) spin += 0.000022;
 
   ctx.fillStyle = bgGrad;
   ctx.fillRect(0, 0, W, H);
 
-  /* 星雲。少し大きめに貼って、視差でふちが出ないようにする */
   if (neb) {
     const ov = 56;
     ctx.globalCompositeOperation = 'lighter';
-    ctx.globalAlpha = .82;
+    ctx.globalAlpha = .8;
     ctx.drawImage(neb, -ov + px * 26, -ov + py * 20 - scrollK * 44,
                   W + ov * 2, H + ov * 2);
     ctx.globalAlpha = 1;
     ctx.globalCompositeOperation = 'source-over';
   }
 
-  /* 星 */
+  /* 遠くの銀河。大きさの比較になる */
+  if (far) drawGalaxy(far, W * .14 + px * 18, H * .22 + py * 14 - scrollK * 40,
+                      W < 760 ? 150 : 210, .5, 2.4);
+  /* 主役の銀河 */
+  if (gal) drawGalaxy(gal, GAL.x + px * 34, GAL.y + py * 24 - scrollK * 90,
+                      GAL.size, .95, 1);
+
+  ctx.globalCompositeOperation = 'source-over';
   for (const L of layers) {
     const ox = px * 110 * L.p, oy = py * 82 * L.p - scrollK * 150 * L.p;
-    for (const s of L.s) {
-      if (!reduce) { s.y -= L.sp; if (s.y < -2) { s.y = H + 2; s.x = Math.random() * W; } }
-      const tw = reduce ? .85 : (Math.sin(t / 760 * s.tw + s.ph) * .3 + .7);
-      let y = s.y + oy;
+    for (const st of L.s) {
+      if (!reduce) { st.y -= L.sp; if (st.y < -2) { st.y = H + 2; st.x = Math.random() * W; } }
+      const tw = reduce ? .85 : (Math.sin(t / 760 * st.tw + st.ph) * .3 + .7);
+      let y = st.y + oy;
       if (y < -4) y += H + 8; else if (y > H + 4) y -= H + 8;
-      ctx.globalAlpha = s.a * tw;
-      ctx.fillStyle = s.c;
-      ctx.beginPath();
-      ctx.arc(s.x + ox, y, s.r, 0, 6.2832);
-      ctx.fill();
+      ctx.globalAlpha = st.a * tw;
+      ctx.fillStyle = st.c;
+      ctx.beginPath(); ctx.arc(st.x + ox, y, st.r, 0, 6.2832); ctx.fill();
     }
   }
 
-  /* 明るい星 */
   ctx.globalCompositeOperation = 'lighter';
   for (const b of bright) {
     const tw = reduce ? .68 : (Math.sin(t / 1400 + b.ph) * .2 + .68);
     ctx.globalAlpha = tw;
-    const ox = px * 46 * b.p, oy = py * 34 * b.p - scrollK * 150 * b.p;
-    ctx.drawImage(b.img, b.x - b.sz / 2 + ox, b.y - b.sz / 2 + oy);
+    ctx.drawImage(b.img, b.x - b.sz / 2 + px * 46 * b.p,
+                         b.y - b.sz / 2 + py * 34 * b.p - scrollK * 150 * b.p);
   }
 
-  /* 流れ星 */
   if (!reduce) {
     if (!shoot && t > nextShoot) spawnShoot();
     if (shoot) {
-      shoot.life++;
-      shoot.x += shoot.vx; shoot.y += shoot.vy;
+      shoot.life++; shoot.x += shoot.vx; shoot.y += shoot.vy;
       const a  = Math.sin(Math.PI * (shoot.life / shoot.max));
       const d  = Math.hypot(shoot.vx, shoot.vy);
       const ux = shoot.vx / d, uy = shoot.vy / d;
@@ -466,8 +678,7 @@ function frame(t) {
       g2.addColorStop(0,  'rgba(255,255,255,' + (.9 * a) + ')');
       g2.addColorStop(.3, 'rgba(190,215,255,' + (.35 * a) + ')');
       g2.addColorStop(1,  'rgba(190,215,255,0)');
-      ctx.strokeStyle = g2;
-      ctx.lineWidth = 1.5; ctx.lineCap = 'round';
+      ctx.strokeStyle = g2; ctx.lineWidth = 1.5; ctx.lineCap = 'round';
       ctx.globalAlpha = 1;
       ctx.beginPath();
       ctx.moveTo(shoot.x, shoot.y);
@@ -477,7 +688,6 @@ function frame(t) {
     }
   }
 
-  /* 手前の塵。ピントの合っていない粒が少しあると奥行きが出る */
   for (const m of motes) {
     if (!reduce) {
       m.x += m.vx; m.y += m.vy;
@@ -488,8 +698,7 @@ function frame(t) {
     const rg = ctx.createRadialGradient(mx, my, 0, mx, my, m.r);
     rg.addColorStop(0, 'rgba(188,212,255,' + m.a + ')');
     rg.addColorStop(1, 'rgba(188,212,255,0)');
-    ctx.globalAlpha = 1;
-    ctx.fillStyle = rg;
+    ctx.globalAlpha = 1; ctx.fillStyle = rg;
     ctx.beginPath(); ctx.arc(mx, my, m.r, 0, 6.2832); ctx.fill();
   }
 
@@ -499,20 +708,15 @@ function frame(t) {
 
 build();
 requestAnimationFrame(frame);
-
-/* 画面外・タブ非表示のときは描かない */
-new IntersectionObserver(([e]) => { visible = e.isIntersecting; })
-  .observe(document.getElementById('space'));
+new IntersectionObserver(([e]) => { visible = e.isIntersecting; }).observe(spEl);
 document.addEventListener('visibilitychange', () => { visible = !document.hidden; });
 
-/* 視差：ポインタとスクロール */
-const spEl = document.getElementById('space');
 if (!reduce) {
   spEl.addEventListener('pointermove', e => {
     const r = spEl.getBoundingClientRect();
     tx = ((e.clientX - r.left) / r.width  - .5) * 2;
     ty = ((e.clientY - r.top)  / r.height - .5) * 2;
-    orbit.style.transform = 'translate3d(' + (tx * -14) + 'px,' + (ty * -10) + 'px,0)';
+    orbit.style.transform = 'translate3d(' + (tx * -13) + 'px,' + (ty * -9) + 'px,0)';
   }, { passive: true });
   spEl.addEventListener('pointerleave', () => {
     tx = 0; ty = 0; orbit.style.transform = '';
@@ -520,10 +724,11 @@ if (!reduce) {
 }
 addEventListener('scroll', () => {
   scrollK = Math.min(1, scrollY / Math.max(1, innerHeight));
+  if (scrollY > 60) hint.classList.add('gone');
+  else if (focused < 0) hint.classList.remove('gone');
 }, { passive: true });
-
-let rz2;
-addEventListener('resize', () => { clearTimeout(rz2); rz2 = setTimeout(build, 200); });
+let rz3;
+addEventListener('resize', () => { clearTimeout(rz3); rz3 = setTimeout(build, 200); });
 
 /* ---------- 要約パネル ---------- */
 const sheet = document.getElementById('sheet');
@@ -546,6 +751,7 @@ function open(i, srcImg) {
   } else {
     pop.hidden = true;
   }
+
   document.getElementById('sh-sum').innerHTML = b.sum.map(p => '<p>' + p + '</p>').join('');
   document.getElementById('sh-go').href = b.url;
   shImg.src = b.cover;
@@ -555,7 +761,6 @@ function open(i, srcImg) {
   sheet.hidden = false;
   document.body.classList.add('locked');
 
-  /* 浮いていた本が、そのままパネルの位置まで大きくなる */
   if (srcImg && !reduce && shImg.animate) {
     const a = srcImg.getBoundingClientRect();
     requestAnimationFrame(() => {
@@ -575,17 +780,17 @@ function open(i, srcImg) {
   setTimeout(() => document.getElementById('sheetX').focus(), 80);
 }
 
-function close() {
+function closeSheet() {
   sheet.classList.remove('on');
   document.body.classList.remove('locked');
   setTimeout(() => { sheet.hidden = true; }, 260);
   if (lastFocus) lastFocus.focus();
 }
 
-document.getElementById('sheetX').addEventListener('click', close);
-sheet.querySelector('[data-close]').addEventListener('click', close);
+document.getElementById('sheetX').addEventListener('click', closeSheet);
+sheet.querySelector('[data-close]').addEventListener('click', closeSheet);
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape' && !sheet.hidden) close();
+  if (e.key === 'Escape' && !sheet.hidden) closeSheet();
 });
 
 /* ---------- ヘッダーは宇宙を抜けてから出す ---------- */
@@ -593,13 +798,7 @@ const hd = document.querySelector('.hd');
 new IntersectionObserver(
   ([e]) => hd.classList.toggle('is-on', !e.isIntersecting),
   { threshold: 0, rootMargin: '-72px 0px 0px 0px' }
-).observe(document.getElementById('space'));
-
-/* 少しスクロールしたら「本をえらぶ」を消す */
-const hint = document.getElementById('hint');
-addEventListener('scroll', () => {
-  hint.classList.toggle('gone', scrollY > 60);
-}, { passive: true });
+).observe(spEl);
 </script>
 
 </body>
