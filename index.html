@@ -22,7 +22,7 @@
 <link rel="canonical" href="https://sword-one.github.io/diary/">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Yusei+Magic&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 
 <script type="application/ld+json">
@@ -87,12 +87,10 @@
       <div class="sh-a" id="sh-a"></div>
       <p class="sh-c" id="sh-c"></p>
 
-      <!-- 店員の手書きPOP。ここだけ文体のルールが違う（CLAUDE.md §4 参照） -->
+      <!-- 店員の手書きPOP。画像だが、altに同じ文章を入れてある
+           （CLAUDE.md §4 参照） -->
       <div class="pop" id="sh-pop">
-        <span class="pop-tape" aria-hidden="true"></span>
-        <div class="pop-h" id="pop-h"></div>
-        <div class="pop-b" id="pop-b"></div>
-        <div class="pop-sign" id="pop-sign"></div>
+        <img id="pop-img" src="" alt="" width="1200" height="800" decoding="async">
       </div>
 
       <div class="sh-sum" id="sh-sum"></div>
@@ -173,12 +171,11 @@ const BOOKS = [
     url: 'power.html',
     katch: '同じ「やりたい」でも、続く人と続かない人がいる。',
     pop: {
-      h: '<span class="nb">続かないのは、</span><em>根性のせいじゃない</em>',
-      b: '「やらなきゃ」で動くと、ガソリンみたいに減っていくんです。<br>' +
-         '「こうしたい」で動くと、<u>減らない</u>。<br>' +
-         'しかもこれ、精神科医が後半生ぜんぶ使って調べた話。<br>' +
-         '自分が今どっちで走ってるか、ちょっと怖いけど確かめたくなります。',
-      s: '読むのに8分'
+      img: 'img/pop02.webp',
+      alt: '手書きのPOP。レビューが、きれいに割れてる本。'
+         + '「序章で断念した」という人と、「十数年かけて、やっと分かった」という人。'
+         + '正直、分厚いです。ぜんぶ読まなくていい。'
+         + 'でも「力」に2種類あると知るだけで、見えるものが変わる。'
     },
     sum: [
       '本は、人を動かす力を2つに分けます。<b>フォース</b>は押す力。<b>パワー</b>は引きつける力。',
@@ -195,12 +192,11 @@ const BOOKS = [
     url: 'coaching.html',
     katch: 'その「さすが」は、相手のところで止まっている。',
     pop: {
-      h: '<span class="nb">ほめ方、</span><em>まちがえてました</em>',
-      b: '「さすが」「すごいね」。言われたら嬉しい。<br>' +
-         'でも<u>それだけ</u>で終わってたんです、あの言葉。<br>' +
-         '26万部売れてる理由、1項目読んだだけでわかりました。<br>' +
-         '読んだあと、人をほめるのが少しこわくなります。たぶん、それが正解。',
-      s: '読むのに7分'
+      img: 'img/pop01.webp',
+      alt: '手書きのPOP。1回読んで終わる本じゃないらしい。'
+         + '「1項目が短いから読み返しやすい」これがいちばん多い感想でした。'
+         + '職場だけじゃなく子育てにも使えたという声も。'
+         + 'わたし、「なぜ？」めちゃくちゃ言ってました。'
     },
     sum: [
       'コーチングでは、相手をほめたり認めたりすることを<b>アクノレッジメント</b>と呼びます。本はそれを2種類に分けます。',
@@ -965,13 +961,14 @@ function open(i, srcImg) {
   document.getElementById('sh-c').textContent = b.katch;
 
   const pop = document.getElementById('sh-pop');
-  if (b.pop) {
+  const popImg = document.getElementById('pop-img');
+  if (b.pop && b.pop.img) {
     pop.hidden = false;
-    document.getElementById('pop-h').innerHTML = b.pop.h;
-    document.getElementById('pop-b').innerHTML = b.pop.b;
-    document.getElementById('pop-sign').textContent = b.pop.s || '';
+    popImg.src = b.pop.img;
+    popImg.alt = b.pop.alt || '';
   } else {
     pop.hidden = true;
+    popImg.removeAttribute('src');
   }
 
   document.getElementById('sh-sum').innerHTML = b.sum.map(p => '<p>' + p + '</p>').join('');
@@ -1027,6 +1024,11 @@ document.getElementById('sheetX').addEventListener('click', closeSheet);
 sheet.querySelector('[data-close]').addEventListener('click', closeSheet);
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && !sheet.hidden) closeSheet();
+});
+
+/* POPは開いた瞬間に出したいので、手が空いたときに先読みしておく */
+(window.requestIdleCallback || (f => setTimeout(f, 1600)))(() => {
+  BOOKS.forEach(b => { if (b.pop && b.pop.img) new Image().src = b.pop.img; });
 });
 
 /* ---------- ヘッダーは宇宙を抜けてから出す ---------- */

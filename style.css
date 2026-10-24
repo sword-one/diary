@@ -505,40 +505,14 @@ body.locked{overflow:hidden}
 .sh-c{font-size:16px;line-height:1.7;font-weight:700;color:var(--navy);
   margin:20px 0 0;padding:18px 0 0;border-top:1px solid var(--hair);text-wrap:balance}
 /* ───── 手書きPOP ─────
-   本屋で本に貼ってある、店員の手書きのやつ。
-   帯が「静かな発見」なのに対して、ここは熱量。文体のルールがひとつだけ違う。
-   紙を1枚貼った物として見せたいので、傾き・テープ・紙の影をつける */
-.pop{position:relative;margin:26px 0 4px;padding:22px 20px 18px;
-  transform:rotate(-.9deg);
-  font-family:"Yusei Magic","Noto Sans JP",sans-serif;
-  color:#2A2318;background:#FFFBEA;
-  background-image:
-    linear-gradient(105deg, rgba(255,255,255,.7) 0%, rgba(255,251,234,0) 42%),
-    repeating-linear-gradient(0deg, rgba(42,35,24,.028) 0 1px, transparent 1px 3px);
-  box-shadow:0 10px 26px rgba(26,34,52,.17), 0 2px 5px rgba(26,34,52,.12),
-             inset 0 0 0 1px rgba(42,35,24,.07)}
+   本屋で本に貼ってある、店員の手書きのやつ。GPTで生成した写真。
+   文字が画像になるので、altに同じ文章を入れて読み上げと検索に残す。
+   紙を1枚貼った物に見せたいので、傾けて影をつける */
+.pop{position:relative;margin:26px 0 4px;transform:rotate(-.8deg);
+  filter:drop-shadow(0 10px 22px rgba(26,34,52,.22))
+         drop-shadow(0 2px 4px rgba(26,34,52,.14))}
 .pop[hidden]{display:none}
-/* 紙のめくれ */
-.pop::after{content:"";position:absolute;right:-1px;bottom:-1px;
-  border-width:0 16px 16px 0;border-style:solid;
-  border-color:transparent #F2EAD0 transparent transparent;
-  filter:drop-shadow(-2px -2px 2px rgba(0,0,0,.09))}
-/* マスキングテープ */
-.pop-tape{position:absolute;left:50%;top:-11px;width:76px;height:21px;margin-left:-38px;
-  transform:rotate(-2.4deg);background:rgba(224,206,150,.62);
-  box-shadow:0 1px 3px rgba(0,0,0,.14);
-  -webkit-mask-image:repeating-linear-gradient(90deg,#000 0 3px,transparent 3px 4px);
-  mask-image:repeating-linear-gradient(90deg,#000 0 3px,transparent 3px 4px)}
-
-.pop-h{font-size:21px;line-height:1.5;text-wrap:balance}
-.pop-h em{font-style:normal;white-space:nowrap;padding:0 2px;
-  background:linear-gradient(transparent 56%, rgba(236,172,40,.48) 56%,
-             rgba(236,172,40,.48) 93%, transparent 93%)}
-.pop-b{margin-top:13px;font-size:14.5px;line-height:2.0;color:#4A4030}
-.pop-b u{text-decoration:none;background:linear-gradient(transparent 62%,rgba(224,96,72,.3) 62%);
-  padding:0 2px}
-.pop-sign{margin-top:14px;font-size:11.5px;color:#9A8F76;text-align:right}
-.pop-sign::before{content:"── "}
+.pop img{display:block;width:100%;height:auto;border-radius:2px}
 
 .sh-sum{margin-top:22px;padding-top:22px;border-top:1px solid var(--hair)}
 .sh-sum p{font-size:14.5px;line-height:1.95;color:var(--soft);margin:0 0 1em}
@@ -569,9 +543,8 @@ body.locked{overflow:hidden}
   .sh-t{font-size:20px}
   .sh-c{font-size:15px}
   .sh-sum p{font-size:14px}
-  .pop{margin:22px 0 2px;padding:20px 16px 15px}
-  .pop-h{font-size:18.5px}
-  .pop-b{font-size:13.5px;line-height:1.95}
+  /* スマホでは紙を左右いっぱいに。手書きが小さいと読めないので */
+  .pop{margin:22px -20px 2px;width:calc(100% + 40px)}
   .sh-go{display:block;text-align:center}
 }
 
