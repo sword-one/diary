@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>ソードワンダイアリー</title>
+    <link>https://sword-one.github.io/diary/</link>
+    <atom:link href="https://sword-one.github.io/diary/feed.xml" rel="self" type="application/rss+xml"/>
+    <description>仕事をする上で、生きていく上で。人間関係やコミュニケーションのこと、毎日の仕事が少し進めやすくなること。そういう本を選んで、一冊ずつお届けします。</description>
+    <language>ja</language>
+    <lastBuildDate>Fri, 23 Oct 2026 09:00:00 +0900</lastBuildDate>
+    <item>
+      <title>新 コーチングが人を活かす</title>
+      <link>https://sword-one.github.io/diary/coaching.html</link>
+      <guid isPermaLink="true">https://sword-one.github.io/diary/coaching.html</guid>
+      <pubDate>Fri, 23 Oct 2026 09:00:00 +0900</pubDate>
+      <category>コミュニケーション</category>
+      <description>その「さすが」は、相手のところで止まっている。 ほめ方を変えると、届く先が変わる。</description>
+    </item>
+    <item>
+      <title>パワーか、フォースか 改訂版</title>
+      <link>https://sword-one.github.io/diary/power.html</link>
+      <guid isPermaLink="true">https://sword-one.github.io/diary/power.html</guid>
+      <pubDate>Fri, 23 Oct 2026 09:00:00 +0900</pubDate>
+      <category>考え方</category>
+      <description>同じ「やりたい」でも、続く人と続かない人がいる。 違いは、根っこにあるものだった。</description>
+    </item>
+  </channel>
+</rss>

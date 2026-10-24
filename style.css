@@ -1,5 +1,5 @@
 :root{
-  --ink:#1A2234; --soft:#5A6478; --grey:#8B94A6; --hair:#E4E8EF;
+  --ink:#1A2234; --soft:#5A6478; --grey:#6B7483; --hair:#E4E8EF;
   --panel:#F7F9FC; --tint:#EEF3FA; --warm:#FDF6EA;
   --navy:#1E3358; --accent:#E08A1B;
   --c-red:#CF3D55; --c-yel:#D9A525; --c-grn:#5AA33E; --c-blu:#3A66B0;
@@ -579,4 +579,47 @@ body.locked{overflow:hidden}
   .pl{animation:none}
   .space-hint span{animation:none}
   .sheet-box,.sheet-bg{transition:none}
+}
+
+
+/* ═══════ アクセシビリティ ═══════ */
+
+/* キーボードで最初にあたる。マウスでは見えない */
+.skip-link{position:fixed;left:14px;top:-60px;z-index:100;
+  padding:11px 18px;font-size:13px;font-weight:700;
+  color:#fff;background:var(--navy);border-radius:4px;
+  box-shadow:0 6px 20px rgba(0,0,0,.4);transition:top .18s ease}
+.skip-link:focus{top:14px;outline:2px solid #fff;outline-offset:2px}
+
+/* 読み上げ専用 */
+.sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;
+  overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+/* 暗い背景の上の文字を、読める濃さまで上げる。
+   rgba(255,255,255,.4) は本文としては薄すぎた */
+.pl-n{color:rgba(255,255,255,.62)}
+.sys-s{color:rgba(255,255,255,.66)}
+.space-copy p{color:rgba(255,255,255,.76)}
+.space-hint span{color:rgba(255,255,255,.62)}
+.space-logo{color:rgba(255,255,255,.62)}
+.ob-cap{color:rgba(255,255,255,.66)}
+.space-back{color:rgba(255,255,255,.86)}
+
+/* フォーカスがどこにあるか、どのページでも必ず分かるように */
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent);
+  outline-offset:3px;border-radius:2px}
+.space a:focus-visible,.space button:focus-visible{outline-color:#9FC2FF}
+
+/* ═══════ 印刷 ═══════ */
+@media print{
+  .hd,.space,.sheet,.space-back,.skip-link,.past,footer,.bk-link{display:none!important}
+  body{background:#fff;color:#000}
+  .wrap{display:block}
+  .toc{display:none}
+  article{max-width:none}
+  a{text-decoration:underline}
+  /* 紙では参照先が分からないので、URLを出す */
+  article a[href^="http"]::after{content:" <" attr(href) ">";font-size:10px;color:#555}
+  h2{break-after:avoid}
+  .fig-box,.ask,.bookcard{break-inside:avoid}
 }
