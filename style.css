@@ -254,8 +254,12 @@ footer{max-width:1140px;margin:0 auto;padding:36px 24px 60px;
 
 /* ───── キャッチコピー ───── */
 /* 赤の人（結論を先に欲しい）のために、書名のすぐ下に置く */
-.catch{font-size:20px;line-height:1.7;font-weight:700;margin:16px 0 0;
+/* 本の帯。1行目で引き、2行目で「読むと何が見えるか」を言う。
+   記事に書いていないことは書かない（効果の約束にしない） */
+.catch{font-size:21px;line-height:1.65;font-weight:700;margin:18px 0 0;
   color:var(--navy);max-width:var(--maxw);text-wrap:balance}
+.catch-sub{font-size:16px;line-height:1.75;font-weight:500;margin:9px 0 0;
+  color:var(--soft);max-width:var(--maxw);text-wrap:balance}
 
 /* ───── 著者について ───── */
 /* 青の人（根拠を知りたい）のために残す。ただし冒頭ではなく、本のカバー袖の位置に */
@@ -274,6 +278,7 @@ footer{max-width:1140px;margin:0 auto;padding:36px 24px 60px;
   margin:0 0 7px;text-wrap:balance}
 
 @media(max-width:880px){
-  .catch{font-size:19px;margin-top:14px}
+  .catch{font-size:19px;margin-top:16px}
+  .catch-sub{font-size:15px}
   .bio p{font-size:14px}
 }
