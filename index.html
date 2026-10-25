@@ -23,7 +23,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=202610251017">
+<link rel="stylesheet" href="style.css?v=202610251048">
 
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"Blog",
@@ -595,6 +595,7 @@ function focus(i) {
 function unfocus() {
   if (focused >= 0) say('銀河にもどりました');
   focused = -1;
+  setTimeout(() => { if (typeof pepeBodies === 'function') pepeBodies(); }, 700);
   pEls.forEach(el => el.classList.remove('is-active', 'is-off'));
   sys.classList.remove('on');
   setTimeout(() => { sys.hidden = true; }, 340);
@@ -612,11 +613,102 @@ document.addEventListener('keydown', e => {
 });
 
 buildPlanets();
+/* 惑星は入場アニメで位置が決まるので、終わってから当たり判定を作る */
+setTimeout(() => { if (typeof pepeBodies === 'function') pepeBodies(); }, 1400);
 let rz;
 addEventListener('resize', () => {
   clearTimeout(rz);
   rz = setTimeout(() => { if (focused < 0) buildPlanets(); else focus(focused); }, 200);
 });
+
+/* ═══════════════════════════════════════════════════
+   ペペ
+   惑星と壁に当たって跳ね返りながら、回転して漂う。
+   当たった位置で回転のつき方が変わるので、同じ動きは二度と出ない。
+   当たり判定は円どうし。惑星は .pl-ball の外接円を使う。
+   文字の帯には入らせないので、見出しの下端を天井にしている。
+   ═══════════════════════════════════════════════════ */
+const pepeEl  = document.querySelector('.pepe');
+const pepeRot = pepeEl && pepeEl.querySelector('.pepe-rot');
+let pp = null;
+
+const PEPE_SPEED = 27;     /* px/秒。速いと落ち着かない */
+const PEPE_SPIN  = 34;     /* 回転の上限 度/秒 */
+
+function pepeBodies() {
+  if (!pp) return;
+  const sr = spEl.getBoundingClientRect();
+  pp.bodies = [...document.querySelectorAll('.pl-ball')].map(el => {
+    const r = el.getBoundingClientRect();
+    return { x: r.left - sr.left + r.width / 2,
+             y: r.top  - sr.top  + r.height / 2,
+             r: r.width / 2 + 5 };     /* 惑星は浮遊で±8px動くので少し大きめに見る */
+  });
+  const copy = document.getElementById('copy').getBoundingClientRect();
+  pp.top = Math.max(10, copy.bottom - sr.top + 18);
+}
+
+function pepeInit() {
+  if (!pepeEl) return;
+  const sr = spEl.getBoundingClientRect();
+  if (!sr.width) return;
+  const w = pepeEl.offsetWidth, h = pepeEl.offsetHeight;
+  if (!w) return;
+  const ang = rnd(0.6, 2.5) * (Math.random() > .5 ? 1 : -1);
+  pp = {
+    w, h, r: w * .44,
+    x: sr.width * .52, y: sr.height * .62,
+    vx: Math.cos(ang) * PEPE_SPEED, vy: Math.sin(ang) * PEPE_SPEED,
+    rot: rnd(-20, 20), vrot: rnd(-14, 14), top: 0
+  };
+  pepeBodies();
+}
+
+function pepeStep(dt) {
+  if (!pp || reduce) return;
+  const sr = spEl.getBoundingClientRect();
+  const W2 = sr.width, H2 = sr.height;
+  const hw = pp.w / 2, hh = pp.h / 2;
+
+  pp.x += pp.vx * dt;
+  pp.y += pp.vy * dt;
+  pp.rot += pp.vrot * dt;
+
+  /* 壁。当たった縁と逆向きに少し回る */
+  if (pp.x - hw < 6)       { pp.x = 6 + hw;        pp.vx =  Math.abs(pp.vx); pp.vrot += 7; }
+  if (pp.x + hw > W2 - 6)  { pp.x = W2 - 6 - hw;   pp.vx = -Math.abs(pp.vx); pp.vrot -= 7; }
+  if (pp.y - hh < pp.top)  { pp.y = pp.top + hh;   pp.vy =  Math.abs(pp.vy); pp.vrot -= 7; }
+  if (pp.y + hh > H2 - 12) { pp.y = H2 - 12 - hh;  pp.vy = -Math.abs(pp.vy); pp.vrot += 7; }
+
+  /* 惑星。法線方向に速度を反射し、接線方向の分だけ回転をもらう */
+  for (const b of pp.bodies || []) {
+    const dx = pp.x - b.x, dy = pp.y - b.y;
+    const d = Math.hypot(dx, dy) || 0.001;
+    const min = pp.r + b.r;
+    if (d >= min) continue;
+    const nx = dx / d, ny = dy / d;
+    pp.x = b.x + nx * min;
+    pp.y = b.y + ny * min;
+    const dot = pp.vx * nx + pp.vy * ny;
+    if (dot < 0) {
+      pp.vx -= 2 * dot * nx;
+      pp.vy -= 2 * dot * ny;
+      pp.vrot += (-pp.vx * ny + pp.vy * nx) * .20;   /* かすめると強く回る */
+      pp.vx *= .97; pp.vy *= .97;
+    }
+  }
+
+  /* 止まると寂しく、速いと落ち着かない。いつも同じ速さに戻す */
+  const sp = Math.hypot(pp.vx, pp.vy) || 0.001;
+  const k = PEPE_SPEED / sp;
+  pp.vx = pp.vx * (1 - .04) + pp.vx * k * .04;
+  pp.vy = pp.vy * (1 - .04) + pp.vy * k * .04;
+  pp.vrot = Math.max(-PEPE_SPIN, Math.min(PEPE_SPIN, pp.vrot * .998));
+
+  pepeEl.style.transform = 'translate(' + (pp.x - hw).toFixed(1) + 'px,' +
+                                          (pp.y - hh).toFixed(1) + 'px)';
+  if (pepeRot) pepeRot.style.transform = 'rotate(' + pp.rot.toFixed(1) + 'deg)';
+}
 
 /* ===========================================================
    背景：渦巻銀河と星
@@ -846,9 +938,15 @@ function drawGalaxy(img, cx, cy, size, a, extraSpin) {
   ctx.restore();
 }
 
+let lastT = 0;
 function frame(t) {
   requestAnimationFrame(frame);
   if (!visible || !W) return;
+
+  /* タブが裏にいた分を一気に進めると飛んでいくので上限をつける */
+  const dt = lastT ? Math.min(0.05, (t - lastT) / 1000) : 0;
+  lastT = t;
+  if (focused < 0) pepeStep(dt);
 
   px += (tx - px) * .055;
   py += (ty - py) * .055;
@@ -937,6 +1035,7 @@ function frame(t) {
 }
 
 build();
+pepeInit();
 requestAnimationFrame(frame);
 new IntersectionObserver(([e]) => { visible = e.isIntersecting; }).observe(spEl);
 
@@ -959,7 +1058,10 @@ addEventListener('scroll', () => {
   else if (focused < 0) hint.classList.remove('gone');
 }, { passive: true });
 let rz3;
-addEventListener('resize', () => { clearTimeout(rz3); rz3 = setTimeout(build, 200); });
+addEventListener('resize', () => {
+  clearTimeout(rz3);
+  rz3 = setTimeout(() => { build(); pepeInit(); }, 200);
+});
 
 /* ---------- 読み上げへのお知らせ ---------- */
 function say(msg) {

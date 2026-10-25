@@ -648,19 +648,14 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--accent);
    周期が互いに素に近いので、見た目の繰り返しに気づきにくい。
    色と粒状感は画像側で宇宙に合わせてあるので、ここでは足さない。
    宇宙に床は無いのでドロップシャドウは入れない（Codexレビュー） */
-/* 全周ずっと最前面だと、宇宙の中ではなく画面に貼ったステッカーに見える。
-   一周の 16% だけ惑星の裏へ回し、そのあいだは少しぼかして暗くする（Codexレビュー）。
-   経路と同じ長さにしてあるので、位置と奥行きがずれない */
+/* 位置と回転はJSが物理で動かす（惑星と壁に当たって跳ね返る）。
+   CSSが持つのは、呼吸のような小さな上下だけ */
 .pepe{position:absolute;left:0;top:0;z-index:3;pointer-events:none;
   width:clamp(74px,10.3vw,122px);
-  animation:pepe-path 88s ease-in-out infinite,
-            pepe-depth 88s linear infinite}
-@keyframes pepe-depth{
-  0%,  50% {z-index:3;filter:none}
-  54%, 66% {z-index:1;filter:blur(.8px) brightness(.78) saturate(.84)}
-  70%, 100%{z-index:3;filter:none}
-}
-.pepe-rot{display:block;animation:pepe-tumble 23s ease-in-out infinite}
+  transition:opacity .4s ease}
+/* 惑星を選んでいる間は引っこむ。その画面の主役は本なので */
+.space.focused .pepe{opacity:0}
+.pepe-rot{display:block;will-change:transform}
 .pepe img{display:block;width:100%;height:auto;
   animation:pepe-bob 7s ease-in-out infinite;
   /* 橙と白だけ局所コントラストが周囲の1.5倍あり、見出しの次に目が飛んでいた */
@@ -668,27 +663,20 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--accent);
          drop-shadow(-2px -3px 9px rgba(130,175,255,.24))}
 @keyframes pepe-bob{0%,100%{transform:translateY(-2.5px)}50%{transform:translateY(2.5px)}}
 
-/* 閉じた経路。始点と終点が同じなので一周してもつながる。
-   画面外に出ず、ずっと漂って見える */
+
 /* 上限は 30svh。見出しと説明文の帯には入らせない（Codexレビュー） */
-@keyframes pepe-path{
-  0%,100%{transform:translate(58vw, 33svh)}
   18%    {transform:translate(80vw, 51svh)}
   36%    {transform:translate(54vw, 77svh)}
   54%    {transform:translate(25vw, 64svh)}
   72%    {transform:translate(37vw, 39svh)}
   86%    {transform:translate(50vw, 31svh)}
 }
-@keyframes pepe-tumble{
-  0%,100%{transform:rotate(-1.6deg)}
   50%    {transform:rotate(1.6deg)}
 }
 
 @media(max-width:880px){
-  .pepe{width:clamp(57px,15.5vw,79px);animation-duration:104s}
+  .pepe{width:clamp(57px,15.5vw,79px)}
   /* 惑星の隙間を縫う。真上で止まると惑星を隠してしまう */
-  @keyframes pepe-path{
-    0%,100%{transform:translate(50vw, 43svh)}
     22%    {transform:translate(86vw, 61svh)}
     44%    {transform:translate(57vw, 84svh)}
     66%    {transform:translate(8vw,  69svh)}
@@ -697,7 +685,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--accent);
 }
 
 @media(prefers-reduced-motion:reduce){
-  .pepe{animation:none;transform:translate(62vw, 62svh);filter:none;z-index:3}
+  .pepe{transform:translate(58vw, 60svh);filter:none;z-index:3}
   .pepe-rot,.pepe img{animation:none}
   .space-down{animation:none}
 }
