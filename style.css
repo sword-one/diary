@@ -777,3 +777,54 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--accent);
 .about-name{font-size:14.5px!important;line-height:1.95;color:var(--soft)!important;
   margin-top:34px!important;padding-top:26px;border-top:1px solid var(--hair)}
 .about-name b{font-weight:700;color:var(--ink)}
+
+/* ═══════ いま読まれている本 ═══════ */
+.rk{max-width:760px;margin:0 auto;padding:0 24px 90px}
+.rk-meta{font-size:12.5px;letter-spacing:.06em;color:var(--grey);
+  padding-bottom:16px;border-bottom:2px solid var(--ink)}
+.rk-list{list-style:none;margin:0;padding:0;counter-reset:rk}
+
+.rk-row{display:grid;grid-template-columns:34px 86px 1fr;gap:18px;
+  align-items:start;padding:26px 0;border-bottom:1px solid var(--hair)}
+.rk-no{font-size:22px;font-weight:700;color:var(--grey);line-height:1.1;
+  letter-spacing:-.02em}
+.rk-cov img{display:block;width:100%;height:auto;border-radius:2px;
+  box-shadow:0 3px 12px rgba(26,34,52,.2), 0 0 0 1px rgba(26,34,52,.07)}
+.rk-nocover{display:block;aspect-ratio:3/4;border-radius:2px;
+  border:1px dashed var(--hair);background:var(--panel)}
+.rk-body{display:block;min-width:0}
+.rk-t{display:block;font-size:17px;font-weight:700;line-height:1.5;
+  color:var(--ink);text-wrap:pretty}
+.rk-a{display:block;margin-top:7px;font-size:13px;line-height:1.7;color:var(--soft)}
+.rk-g{display:inline-block;margin-top:10px;padding:3px 9px;font-size:11px;
+  letter-spacing:.04em;color:var(--navy);background:var(--tint);border-radius:3px}
+
+/* 自分が記事にした本。ここが他のランキングには無いところ */
+.rk-row.is-mine .rk-no{color:var(--accent)}
+.rk-row.is-mine{background:linear-gradient(90deg,rgba(224,138,27,.05),transparent 62%);
+  margin:0 -14px;padding-left:14px;padding-right:14px}
+.rk-read{display:block;margin-top:13px;font-size:13.5px;font-weight:700;
+  color:var(--navy)}
+.rk-read:hover{text-decoration:underline;text-underline-offset:3px}
+.rk-shelf{display:block;margin-top:13px;font-size:12.5px;color:var(--grey)}
+.rk-shelf::before{content:"・"}
+
+.rk-buy{display:inline-block;margin-top:14px;padding:7px 14px;font-size:12.5px;
+  font-weight:500;color:var(--navy);border:1px solid var(--hair);
+  border-radius:4px;background:#fff}
+.rk-buy:hover{background:var(--panel)}
+.rk-buy::after{content:" ↗";font-size:10px}
+
+.rk-empty{margin-top:40px;font-size:14px;line-height:2;color:var(--soft)}
+.rk-empty code{font-size:12.5px;background:var(--panel);padding:3px 7px;border-radius:3px}
+.rk-credit{margin-top:34px;padding-top:20px;border-top:1px solid var(--hair);
+  font-size:11.5px;color:var(--grey)}
+
+@media(max-width:880px){
+  .rk{padding:0 18px 70px}
+  .rk-row{grid-template-columns:26px 68px 1fr;gap:13px;padding:22px 0}
+  .rk-no{font-size:18px}
+  .rk-t{font-size:15.5px}
+  .rk-a{font-size:12.5px}
+  .rk-row.is-mine{margin:0 -10px;padding-left:10px;padding-right:10px}
+}

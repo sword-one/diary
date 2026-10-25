@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>いま読まれている本｜ORBIT</title>
+<meta name="description" content="楽天ブックスでいま売れているビジネス書・人文書のランキング。そのうち、ORBITで記事にした本と、本棚にある本には印をつけています。">
+
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="favicon.svg">
+<meta name="theme-color" content="#070C18">
+<link rel="alternate" type="application/rss+xml" title="ORBIT" href="https://sword-one.github.io/diary/feed.xml">
+<link rel="canonical" href="https://sword-one.github.io/diary/ranking.html">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ORBIT">
+<meta property="og:title" content="いま読まれている本">
+<meta property="og:description" content="いま売れている本のうち、どれを読んだか。読んだものには記事へのリンクがあります。">
+<meta property="og:url" content="https://sword-one.github.io/diary/ranking.html">
+<meta property="og:image" content="https://sword-one.github.io/diary/img/hero.jpg">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=202610251243">
+</head>
+<body>
+
+<a class="skip-link" href="#rk">本文へ移動</a>
+
+<header class="hd is-on"><div class="hd-in">
+  <a class="logo" href="index.html">ORBIT</a>
+  <span class="logo-sub">オービット</span>
+  <nav class="hd-nav"><a href="index.html#list">記事一覧</a><a href="index.html#about">このサイトについて</a></nav>
+</div></header>
+
+<div class="lead-in">
+  <h1>いま読まれている本</h1>
+  <p>世の中でいま売れている本です。そのうち、ここで記事にしたものと、本棚にあるものには印をつけています。<b>読んだ本と、読まれている本は、だいたいずれています。</b>そのずれ自体が、何を読むかのヒントになると思っています。</p>
+</div>
+
+<div class="rk" id="rk">
+  <div class="rk-meta" id="rkMeta"></div>
+  <ol class="rk-list" id="rkList"></ol>
+  <p class="rk-empty" id="rkEmpty" hidden>
+    ランキングはまだ取得していません。<br>
+    <code>python tools/fetch-ranking.py</code> を実行すると出ます。
+  </p>
+  <p class="rk-credit" id="rkCredit"></p>
+</div>
+
+<footer>
+  <span>ORBIT</span><span>株式会社ソードワン</span><span>記事中の引用はすべて出典を明記しています</span>
+</footer>
+
+<script>
+/* ランキングは tools/fetch-ranking.py が作った静的なJSONを読むだけ。
+   閲覧者のアクセスで楽天のAPIを叩かないので、IDが出ず、表示も速い */
+fetch('ranking.json?t=' + Date.now())
+  .then(r => r.ok ? r.json() : Promise.reject())
+  .then(d => {
+    const list = document.getElementById('rkList');
+    if (!d.items || !d.items.length) throw 0;
+
+    document.getElementById('rkMeta').textContent =
+      d.source + '　' + d.updated + ' 時点';
+
+    list.innerHTML = d.items.map((b, i) => {
+      const mark = b.article
+        ? '<a class="rk-read" href="' + b.article + '">記事を読む →</a>'
+        : (b.shelf ? '<span class="rk-shelf">本棚にあります</span>' : '');
+      const cover = b.cover
+        ? '<img src="' + b.cover + '" alt="" loading="lazy" width="120" height="170">'
+        : '<span class="rk-nocover"></span>';
+      return '<li class="rk-row' + (b.article ? ' is-mine' : '') + '">' +
+        '<span class="rk-no">' + (i + 1) + '</span>' +
+        '<span class="rk-cov">' + cover + '</span>' +
+        '<span class="rk-body">' +
+          '<span class="rk-t">' + b.title + '</span>' +
+          '<span class="rk-a">' + [b.author, b.publisher].filter(Boolean).join('／') + '</span>' +
+          '<span class="rk-g">' + b.genre + '</span>' +
+          mark +
+          (b.url ? '<a class="rk-buy" href="' + b.url + '" target="_blank" rel="noopener noreferrer sponsored">楽天ブックスで見る</a>' : '') +
+        '</span>' +
+      '</li>';
+    }).join('');
+
+    document.getElementById('rkCredit').textContent =
+      d.credit + (d.affiliate ? '　※リンクにはアフィリエイトを含みます' : '');
+  })
+  .catch(() => {
+    document.getElementById('rkEmpty').hidden = false;
+  });
+</script>
+
+</body>
+</html>
