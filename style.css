@@ -287,7 +287,15 @@ footer{max-width:1140px;margin:0 auto;padding:36px 24px 60px;
    宇宙のトップページ（index.html だけ。記事には影響しない）
    ═══════════════════════════════════════════════════ */
 
-:root{ --void:#070B16; --void2:#0E1730; }
+/* ═══ この宇宙の光学ルール ═══
+   すべての要素を、この3段階のどれかに必ず当てはめる。
+   個別に綺麗にしても、基準がバラバラだと素人の画面に見える（Codexレビュー）。
+     --lit  選択・ホバー中のもの。最大輝度
+     --dim  触れるが今は選ばれていないもの
+     --sub  触れない補足・装飾
+   光源は左上45度、環境光は青紫。これも全要素で共通 */
+:root{ --void:#070B16; --void2:#0E1730;
+  --lit:1; --dim:.80; --sub:.60; }
 
 body.top .hd{position:fixed;left:0;right:0;top:0;
   transform:translateY(-101%);transition:transform .35s cubic-bezier(.3,.8,.3,1)}
@@ -304,14 +312,27 @@ body.locked{overflow:hidden}
 
 .space-in{position:absolute;inset:0}
 
-.space-copy{position:absolute;left:0;right:0;top:0;padding:62px 22px 0;
-  text-align:center;color:#fff;z-index:3;pointer-events:none}
+.space-copy{position:absolute;left:0;right:0;top:0;padding:54px 22px 0;
+  text-align:center;color:#fff;z-index:3;pointer-events:none;
+  transition:opacity .4s ease, transform .5s cubic-bezier(.3,.9,.3,1)}
+/* 銀河の粒が文字と competing していたので、見出しの後ろだけ暗く落とす。
+   背景全体を暗くすると宇宙が死ぬので、ここだけ */
+.space-copy::before{content:"";position:absolute;z-index:-1;
+  left:-2%;right:-2%;top:-22px;height:calc(100% + 40px);
+  background:radial-gradient(50% 56% at 50% 46%,
+    rgba(4,8,18,.74) 0%, rgba(4,8,18,.42) 52%, rgba(4,8,18,0) 82%)}
 .space-logo{font-size:11.5px;font-weight:700;letter-spacing:.26em;
   color:rgba(255,255,255,.5);margin-bottom:20px}
-.space-copy h1{font-size:30px;line-height:1.5;font-weight:700;margin:0;
+.space-copy h1{font-size:35px;line-height:1.48;font-weight:700;margin:0;
   letter-spacing:.015em;text-wrap:balance;text-shadow:0 2px 26px rgba(0,0,0,.6)}
-.space-copy p{max-width:460px;margin:15px auto 0;font-size:13.5px;line-height:1.95;
-  color:rgba(255,255,255,.62);text-wrap:balance}
+.space-copy p{max-width:530px;margin:17px auto 0;font-size:17px;line-height:1.9;
+  color:rgba(255,255,255,.76);text-wrap:balance}
+/* 何をする画面かは、下まで読まないと分からないと遅い */
+.space-tip{font-size:15.5px!important;letter-spacing:.03em;
+  color:rgba(255,255,255,.6)!important;margin-top:20px!important}
+.space-tip::before{content:"";display:inline-block;width:5px;height:5px;
+  margin:0 9px 2px 0;border-radius:50%;background:rgba(224,138,27,.9);
+  box-shadow:0 0 8px rgba(224,138,27,.8)}
 
 /* ───── 浮かぶ本 ───── */
 .orbit{position:absolute;inset:0;z-index:2;
@@ -338,7 +359,16 @@ body.locked{overflow:hidden}
    canvas はリングを含むので球の 2.35 倍あり、はみ出して配置する */
 .pl-ball{position:relative;display:block;width:100%;aspect-ratio:1}
 .pl-cv{position:absolute;left:50%;top:50%;width:235%;height:235%;
-  transform:translate(-50%,-50%);pointer-events:none}
+  transform:translate(-50%,-50%);pointer-events:none;
+  /* 世界観のルール：操作できるものは普段 彩度76%、触れたら100%。
+     遠いもの（小さいもの）はわずかにぼかす */
+  filter:saturate(calc(.76 - var(--far,0) * .06))
+         brightness(calc(.94 - var(--far,0) * .05))
+         contrast(calc(1 - var(--far,0) * .05))
+         blur(var(--blur,0px));
+  transition:filter .45s ease}
+.pl:hover .pl-cv,.pl:focus-visible .pl-cv,.pl.is-active .pl-cv{
+  filter:saturate(1) brightness(1) blur(0)}
 
 /* 大気のにじみ。canvas の裏に敷く */
 .pl-ball::before{content:"";position:absolute;inset:-26%;border-radius:50%;
@@ -351,24 +381,32 @@ body.locked{overflow:hidden}
 
 /* ───── 銀河の画面に出す小さな書影 ───── */
 .pl-moons{position:absolute;inset:0;pointer-events:none}
-.mn{position:absolute;left:var(--mx);top:var(--my);width:23%;
-  transform:translate(-50%,-50%) rotate(var(--mr,-7deg)) scale(.7);
+.mn{position:absolute;left:calc(100% + var(--mx,16px));top:var(--my,42%);
+  width:clamp(52px, 4.6vw, 68px);
+  transform:translate(0,-50%) rotate(var(--mr,-7deg)) scale(.7);
   opacity:0;transition:opacity .7s ease var(--md,0s),
                        transform .7s cubic-bezier(.2,.8,.26,1) var(--md,0s)}
-.pl-in.in .mn{opacity:1;transform:translate(-50%,-50%) rotate(var(--mr,-7deg)) scale(1)}
-.mn img{display:block;width:100%;height:auto;border-radius:1px;
-  box-shadow:0 5px 12px rgba(0,0,0,.66), 0 0 0 .5px rgba(255,255,255,.28)}
+.pl-in.in .mn{opacity:1;transform:translate(0,-50%) rotate(var(--mr,-7deg)) scale(1)}
+/* 白地の表紙が球の明部より強く、惑星より先に目に入っていた。
+   普段は --dim、触れたら --lit（光学ルール） */
+.mn img{display:block;width:100%;height:auto;border-radius:1.5px;
+  opacity:var(--dim);filter:brightness(.9) saturate(.88);
+  transition:opacity .4s ease, filter .4s ease;
+  box-shadow:0 8px 18px rgba(0,0,0,.72), 0 0 0 .5px rgba(255,255,255,.3),
+             0 0 22px rgba(150,190,255,.18)}
+.pl:hover .mn img,.pl:focus-visible .mn img{
+  opacity:var(--lit);filter:brightness(1) saturate(1)}
 .pl:hover .mn,.pl:focus-visible .mn{
-  transform:translate(-50%,-50%) rotate(var(--mr,-7deg)) scale(1.16)}
+  transform:translate(0,-50%) rotate(var(--mr,-7deg)) scale(1.16)}
 
 .pl-label{position:absolute;left:50%;top:100%;transform:translateX(-50%);
-  margin-top:12px;width:max-content;max-width:42vw;text-align:center;
+  margin-top:16px;width:max-content;max-width:42vw;text-align:center;
   transition:opacity .3s}
-.pl-name{display:block;font-size:12px;font-weight:700;
-  letter-spacing:.06em;color:rgba(255,255,255,.78);white-space:nowrap;
+.pl-name{display:block;font-size:16px;font-weight:700;
+  letter-spacing:.05em;color:rgba(255,255,255,.85);white-space:nowrap;
   text-shadow:0 2px 12px rgba(0,0,0,.85);transition:color .35s}
-.pl-n{display:block;margin-top:4px;font-size:10px;letter-spacing:.12em;
-  color:rgba(255,255,255,.4);transition:color .35s}
+.pl-n{display:block;margin-top:7px;font-size:12.5px;letter-spacing:.12em;
+  color:rgba(255,255,255,.6);transition:color .35s}
 
 .pl:hover .pl-name,.pl:focus-visible .pl-name{color:#fff}
 .pl:hover .pl-n,.pl:focus-visible .pl-n{color:rgba(255,255,255,.72)}
@@ -427,7 +465,6 @@ body.locked{overflow:hidden}
 
 /* 惑星を選んだら見出しは引っこむ */
 .space.focused .space-copy{opacity:0;transform:translateY(-14px)}
-.space-copy{transition:opacity .4s ease, transform .5s cubic-bezier(.3,.9,.3,1)}
 
 .space-back{position:absolute;left:50%;top:26px;transform:translateX(-50%);
   z-index:6;padding:9px 18px 9px 30px;font:inherit;font-size:12px;font-weight:500;
@@ -452,16 +489,18 @@ body.locked{overflow:hidden}
   mix-blend-mode:overlay;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E")}
 
-.space-hint{position:absolute;left:0;right:0;bottom:62px;text-align:center;z-index:3;
+.space-hint{position:absolute;left:0;right:0;bottom:68px;text-align:center;z-index:3;
   pointer-events:none;transition:opacity .4s}
 .space-hint span{font-size:11.5px;font-weight:500;letter-spacing:.22em;
   color:rgba(255,255,255,.44);animation:breathe 3.4s ease-in-out infinite}
 .space-hint.gone{opacity:0}
 @keyframes breathe{0%,100%{opacity:.45}50%{opacity:1}}
 
-.space-down{position:absolute;left:50%;bottom:20px;z-index:3;
-  width:30px;height:30px;margin-left:-15px;border-radius:50%;
-  display:flex;align-items:center;justify-content:center}
+.space-down{position:absolute;left:50%;bottom:24px;z-index:6;
+  width:44px;height:44px;margin-left:-22px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  animation:nudge 1.9s ease-in-out infinite}
+@keyframes nudge{0%,100%{transform:translateY(0);opacity:.5}50%{transform:translateY(7px);opacity:.9}}
 .space-down::after{content:"";width:9px;height:9px;margin-top:-4px;
   border-right:1.5px solid rgba(255,255,255,.5);
   border-bottom:1.5px solid rgba(255,255,255,.5);transform:rotate(45deg)}
@@ -526,11 +565,13 @@ body.locked{overflow:hidden}
 @media(max-width:880px){
   .space-copy{padding-top:46px}
   .space-copy h1{font-size:23px}
-  .space-copy p{font-size:12.5px;line-height:1.9;max-width:340px}
-  .space-hint{bottom:54px}
-  .pl-label{margin-top:10px;max-width:46vw}
-  .mn{width:31%}
-  .pl-name{font-size:11px}
+  .space-tip{font-size:12px!important;margin-top:17px!important}
+  .space-copy p{font-size:12.5px;line-height:1.9;max-width:340px;margin-top:14px}
+  .space-hint{bottom:58px}
+  .pl-label{margin-top:14px;max-width:46vw}
+  .mn{width:52px}
+  .pl-name{font-size:12.5px}
+  .pl-n{font-size:10.5px;margin-top:5px}
   .pl.is-active{transform:translate(-50%,-50%) translate(var(--tx,0),var(--ty,0)) scale(1.35)}
   .sys-t{font-size:15.5px}
   .sys-s{font-size:11px}
@@ -595,4 +636,68 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--accent);
   article a[href^="http"]::after{content:" <" attr(href) ">";font-size:10px;color:#555}
   h2{break-after:avoid}
   .fig-box,.ask,.bookcard{break-inside:avoid}
+}
+
+
+/* ═══════ ペペ ═══════
+   本を持ったまま無重力を漂っている。
+   外側(.pepe)が画面内の移動、内側(img)が回転と上下。
+   周期をずらしてあるので、見た目の繰り返しに気づきにくい。
+   惑星のタップを邪魔しないよう pointer-events は切ってある */
+/* 3層に分けてある。外から 経路 / 回転 / 上下。
+   周期が互いに素に近いので、見た目の繰り返しに気づきにくい。
+   色と粒状感は画像側で宇宙に合わせてあるので、ここでは足さない。
+   宇宙に床は無いのでドロップシャドウは入れない（Codexレビュー） */
+/* 全周ずっと最前面だと、宇宙の中ではなく画面に貼ったステッカーに見える。
+   一周の 16% だけ惑星の裏へ回し、そのあいだは少しぼかして暗くする（Codexレビュー）。
+   経路と同じ長さにしてあるので、位置と奥行きがずれない */
+.pepe{position:absolute;left:0;top:0;z-index:3;pointer-events:none;
+  width:clamp(74px,10.3vw,122px);
+  animation:pepe-path 88s ease-in-out infinite,
+            pepe-depth 88s linear infinite}
+@keyframes pepe-depth{
+  0%,  50% {z-index:3;filter:none}
+  54%, 66% {z-index:1;filter:blur(.8px) brightness(.78) saturate(.84)}
+  70%, 100%{z-index:3;filter:none}
+}
+.pepe-rot{display:block;animation:pepe-tumble 23s ease-in-out infinite}
+.pepe img{display:block;width:100%;height:auto;
+  animation:pepe-bob 7s ease-in-out infinite;
+  /* 橙と白だけ局所コントラストが周囲の1.5倍あり、見出しの次に目が飛んでいた */
+  filter:saturate(.89) contrast(.93) brightness(.96)
+         drop-shadow(-2px -3px 9px rgba(130,175,255,.24))}
+@keyframes pepe-bob{0%,100%{transform:translateY(-2.5px)}50%{transform:translateY(2.5px)}}
+
+/* 閉じた経路。始点と終点が同じなので一周してもつながる。
+   画面外に出ず、ずっと漂って見える */
+/* 上限は 30svh。見出しと説明文の帯には入らせない（Codexレビュー） */
+@keyframes pepe-path{
+  0%,100%{transform:translate(58vw, 33svh)}
+  18%    {transform:translate(80vw, 51svh)}
+  36%    {transform:translate(54vw, 77svh)}
+  54%    {transform:translate(25vw, 64svh)}
+  72%    {transform:translate(37vw, 39svh)}
+  86%    {transform:translate(50vw, 31svh)}
+}
+@keyframes pepe-tumble{
+  0%,100%{transform:rotate(-1.6deg)}
+  50%    {transform:rotate(1.6deg)}
+}
+
+@media(max-width:880px){
+  .pepe{width:clamp(57px,15.5vw,79px);animation-duration:104s}
+  /* 惑星の隙間を縫う。真上で止まると惑星を隠してしまう */
+  @keyframes pepe-path{
+    0%,100%{transform:translate(50vw, 43svh)}
+    22%    {transform:translate(86vw, 61svh)}
+    44%    {transform:translate(57vw, 84svh)}
+    66%    {transform:translate(8vw,  69svh)}
+    84%    {transform:translate(6vw,  46svh)}
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  .pepe{animation:none;transform:translate(62vw, 62svh);filter:none;z-index:3}
+  .pepe-rot,.pepe img{animation:none}
+  .space-down{animation:none}
 }

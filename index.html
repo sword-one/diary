@@ -23,7 +23,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=202610251017">
 
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"Blog",
@@ -54,10 +54,17 @@
       <div class="space-logo">SWORD ONE DIARY</div>
       <h1>読んだ本と、そこで考えたこと</h1>
       <p>仕事をする上で、生きていく上で。人間関係やコミュニケーションのこと、毎日の仕事が少し進めやすくなること。そういう本を選んで、一冊ずつお届けします。</p>
+      <p class="space-tip">惑星はカテゴリです。えらぶと、その本が出てきます</p>
     </div>
 
     <!-- 惑星＝カテゴリ。JSで配置する -->
     <div class="orbit" id="orbit"></div>
+
+    <!-- ペペ。本を持ったまま無重力を漂っている。
+         惑星のタップを邪魔しないよう pointer-events は切ってある -->
+    <div class="pepe" aria-hidden="true">
+      <span class="pepe-rot"><img src="img/pepe.webp" alt=""></span>
+    </div>
 
     <!-- 選んだ惑星の本。惑星のまわりを回っている -->
     <div class="sys" id="sys" hidden>
@@ -69,7 +76,7 @@
 
   <button class="space-back" id="back" hidden>銀河にもどる</button>
   <div class="grain" aria-hidden="true"></div>
-  <div class="space-hint" id="hint"><span>カテゴリをえらぶ</span></div>
+  <div class="space-hint" id="hint"><span>記事一覧へ</span></div>
   <a class="space-down" href="#list" aria-label="記事一覧へ"></a>
 </section>
 
@@ -270,14 +277,18 @@ const itemsOf = id =>
 
 /* 銀河の画面に出す小さな書影。実際の書影を新しい順に3つまで、
    足りない分は薄いカードで埋める（惑星が寂しくならないように） */
-/* 球の中心から 62% のところに、右側の弧にそって並べる。x% , y% , 傾き */
-const MOON_POS = [[86,-1,-9],[110,35,6],[107,75,-4]];
+/* 球の右外周からの距離(px) , 球の高さに対する位置(%) , 傾き。
+   %で置くと球の大きさによって間隔が変わってしまうので、距離はpxで固定する。
+   スマホは1冊だけ大きく出す。小さいのを3つ並べても本に見えない（Codexレビュー） */
+const MOON_W = [[18, 16, -7],[54, 48, 5],[24, 82, -4]];
+const MOON_N = [[16, 56, -6]];
 
 function moonsHTML(id) {
   /* 実際にある書影だけ出す。空の枠を混ぜると不具合に見える */
-  return BOOKS.filter(b => b.p === id).slice(0, 3).map((b, k) =>
-    '<span class="mn" style="--mx:' + MOON_POS[k][0] + '%;--my:' + MOON_POS[k][1] +
-    '%;--mr:' + MOON_POS[k][2] + 'deg;--md:' + (k * 90) + 'ms">' +
+  const pos = narrow() ? MOON_N : MOON_W;
+  return BOOKS.filter(b => b.p === id).slice(0, pos.length).map((b, k) =>
+    '<span class="mn" style="--mx:' + pos[k][0] + 'px;--my:' + pos[k][1] +
+    '%;--mr:' + pos[k][2] + 'deg;--md:' + (k * 90) + 'ms">' +
     '<img src="' + b.cover + '" alt=""></span>'
   ).join('');
 }
@@ -440,8 +451,8 @@ function drawRing(g, C, R, look, half) {
 
 /* ───────── 惑星を置く ───────── */
 /* 上部は見出しが入るので、y は 40%% より下だけを使う */
-const P_SLOTS_W = [[14,49,1.06],[33,72,.80],[54,44,.92],[75,68,1.18],[91,41,.64]];
-const P_SLOTS_N = [[26,45,1.00],[71,56,.82],[35,69,.92],[75,81,.72],[17,85,.56]];
+const P_SLOTS_W = [[14,46,1.10],[34,70,.84],[55,41,.95],[76,66,1.22],[88,34,.80]];
+const P_SLOTS_N = [[28,37,1.12],[73,49,.94],[31,62,1.04],[74,73,.84],[22,82,.66]];
 
 let pEls = [], focused = -1;
 
@@ -458,6 +469,14 @@ function buildPlanets() {
     el.style.left = sl[0] + '%';
     el.style.top  = sl[1] + '%';
     el.style.setProperty('--s',  sl[2]);
+    /* 小さい＝遠い。遠いものをわずかにぼかすと、同じ大きさのボタンに見えなくなる */
+    /* 小さい＝遠い。遠いものは わずかにぼかし、彩度とコントラストを落とす。
+       ぼかしだけで引くと質感不足に見える（Codexレビュー） */
+    const far = Math.max(0, Math.min(1, (1.1 - sl[2]) / .45));
+    el.style.setProperty('--far', far.toFixed(2));
+    el.style.setProperty('--blur', (far * .55).toFixed(2) + 'px');
+    /* 小さい＝遠い。遠いものをわずかにぼかすと、同じ大きさのボタンに見えなくなる */
+    el.style.setProperty('--blur', Math.max(0, (1.1 - sl[2]) * 1.5).toFixed(2) + 'px');
     el.style.setProperty('--a',  pl.look.a);
     el.style.setProperty('--b',  pl.look.b);
     el.style.setProperty('--c',  pl.look.c);
