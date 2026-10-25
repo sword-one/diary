@@ -1,3 +1,6 @@
-# 楽天のアプリID・アフィリエイトID。公開リポジトリに入れない
+# 楽天のアプリID・アクセスキー・アフィリエイトID。公開リポジトリに入れない
 tools/.rakuten-id
 tools/.rakuten-affiliate-id
+tools/rakuten-id.txt
+tools/rakuten-affiliate-id.txt
+tools/rakuten-access-key.txt
