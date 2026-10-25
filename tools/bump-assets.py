@@ -17,8 +17,10 @@ HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 JST = timezone(timedelta(hours=9))
 VER = datetime.now(JST).strftime("%Y%m%d%H%M")
 
-# 版番号を付ける対象（自分のサイト内のものだけ）
-TARGETS = ["style.css"]
+# 版番号を付ける対象（自分のサイト内のものだけ）。
+# 中身を差し替えてもファイル名が同じものは、ここに足す。
+# 書影や記事のヒーロー画像は、差し替えるとき名前も変える前提なので入れない。
+TARGETS = ["style.css", "img/pepe.webp"]
 
 n = 0
 for path in sorted(glob.glob(os.path.join(HERE, "*.html"))):
@@ -26,8 +28,8 @@ for path in sorted(glob.glob(os.path.join(HERE, "*.html"))):
     s = io.open(path, encoding="utf-8").read()
     before = s
     for t in TARGETS:
-        # href="style.css" / href="style.css?v=..." / href="/diary/style.css" に対応
-        s = re.sub(r'(href="(?:/diary/)?%s)(\?v=\d+)?"' % re.escape(t),
+        # href= と src= の両方、/diary/ 付きも、既に版番号があるものも拾う
+        s = re.sub(r'((?:href|src)="(?:/diary/)?%s)(\?v=\d+)?"' % re.escape(t),
                    lambda m: m.group(1) + "?v=" + VER + '"', s)
     if s != before:
         io.open(path, "w", encoding="utf-8", newline="").write(s)

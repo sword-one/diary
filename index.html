@@ -4,13 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ソードワンダイアリー</title>
-<meta name="description" content="仕事をする上で、生きていく上で。人間関係やコミュニケーションのこと、毎日の仕事が少し進めやすくなること。そういう本を選んで、週に一冊ずつお届けします。">
+<meta name="description" content="わかるまでに、時間がかかっていい。星の光が届くのに何年もかかるように、本も、読んだ日にわかるとは限りません。仕事と生き方についての本を、一冊ずつ読んで書いています。">
 
 <!-- LINEやSNSに貼ったときのカード表示用。og:image は絶対URLであること -->
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="ソードワンダイアリー">
 <meta property="og:title" content="ソードワンダイアリー">
-<meta property="og:description" content="仕事をする上で、生きていく上で。そういう本を選んで、週に一冊ずつお届けします。">
+<meta property="og:description" content="わかるまでに、時間がかかっていい。星の光が届くのに何年もかかるように、本も、読んだ日にわかるとは限りません。">
 <meta property="og:url" content="https://sword-one.github.io/diary/">
 <meta property="og:image" content="https://sword-one.github.io/diary/img/hero.jpg">
 <meta name="twitter:card" content="summary_large_image">
@@ -23,7 +23,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=202610251048">
+<link rel="stylesheet" href="style.css?v=202610251102">
 
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"Blog",
@@ -52,9 +52,9 @@
   <div class="space-in">
     <div class="space-copy" id="copy">
       <div class="space-logo">SWORD ONE DIARY</div>
-      <h1>読んだ本と、そこで考えたこと</h1>
-      <p>仕事をする上で、生きていく上で。人間関係やコミュニケーションのこと、毎日の仕事が少し進めやすくなること。そういう本を選んで、一冊ずつお届けします。</p>
-      <p class="space-tip">惑星はカテゴリです。えらぶと、その本が出てきます</p>
+      <h1><span class="nb">わかるまでに、</span><span class="nb">時間がかかっていい</span></h1>
+      <p>星の光が届くのに何年もかかるように、<span class="nb">本も、読んだ日にわかるとは限りません。</span><br class="br-pc">ずっとあとで、ふいにつながります。</p>
+      <p class="space-tip">惑星はカテゴリです。えらぶと、そこにある本が出てきます</p>
     </div>
 
     <!-- 惑星＝カテゴリ。JSで配置する -->
@@ -63,7 +63,7 @@
     <!-- ペペ。本を持ったまま無重力を漂っている。
          惑星のタップを邪魔しないよう pointer-events は切ってある -->
     <div class="pepe" aria-hidden="true">
-      <span class="pepe-rot"><img src="img/pepe.webp" alt=""></span>
+      <span class="pepe-rot"><img src="img/pepe.webp?v=202610251102" alt=""></span>
     </div>
 
     <!-- 選んだ惑星の本。惑星のまわりを回っている -->
@@ -281,7 +281,7 @@ const itemsOf = id =>
    %で置くと球の大きさによって間隔が変わってしまうので、距離はpxで固定する。
    スマホは1冊だけ大きく出す。小さいのを3つ並べても本に見えない（Codexレビュー） */
 const MOON_W = [[18, 16, -7],[54, 48, 5],[24, 82, -4]];
-const MOON_N = [[16, 56, -6]];
+const MOON_N = [[16, 50, -6]];
 
 function moonsHTML(id) {
   /* 実際にある書影だけ出す。空の枠を混ぜると不具合に見える */
@@ -452,7 +452,7 @@ function drawRing(g, C, R, look, half) {
 /* ───────── 惑星を置く ───────── */
 /* 上部は見出しが入るので、y は 40%% より下だけを使う */
 const P_SLOTS_W = [[14,46,1.10],[34,70,.84],[55,41,.95],[76,66,1.22],[88,34,.80]];
-const P_SLOTS_N = [[28,37,1.12],[73,49,.94],[31,62,1.04],[74,73,.84],[22,82,.66]];
+const P_SLOTS_N = [[28,42,1.12],[73,53,.94],[31,64,1.04],[74,74,.84],[22,83,.66]];
 
 let pEls = [], focused = -1;
 
@@ -664,6 +664,21 @@ function pepeInit() {
   pepeBodies();
 }
 
+/* 当たるたびに進路をわずかに曲げる。
+   完全な弾性反射だけだと、床と惑星のあいだの縦の通路に挟まって
+   まっすぐ往復しつづけることがある（実際に起きた） */
+function pepeKick(deg) {
+  const a = rnd(-deg, deg) * Math.PI / 180;
+  const c = Math.cos(a), s = Math.sin(a);
+  const vx = pp.vx * c - pp.vy * s;
+  const vy = pp.vx * s + pp.vy * c;
+  pp.vx = vx; pp.vy = vy;
+  /* 真横・真縦に寄りすぎたら起こす */
+  const sp = Math.hypot(pp.vx, pp.vy) || 1;
+  if (Math.abs(pp.vx) < sp * .26) pp.vx += (pp.vx >= 0 ? 1 : -1) * sp * .3;
+  if (Math.abs(pp.vy) < sp * .20) pp.vy += (pp.vy >= 0 ? 1 : -1) * sp * .24;
+}
+
 function pepeStep(dt) {
   if (!pp || reduce) return;
   const sr = spEl.getBoundingClientRect();
@@ -675,10 +690,10 @@ function pepeStep(dt) {
   pp.rot += pp.vrot * dt;
 
   /* 壁。当たった縁と逆向きに少し回る */
-  if (pp.x - hw < 6)       { pp.x = 6 + hw;        pp.vx =  Math.abs(pp.vx); pp.vrot += 7; }
-  if (pp.x + hw > W2 - 6)  { pp.x = W2 - 6 - hw;   pp.vx = -Math.abs(pp.vx); pp.vrot -= 7; }
-  if (pp.y - hh < pp.top)  { pp.y = pp.top + hh;   pp.vy =  Math.abs(pp.vy); pp.vrot -= 7; }
-  if (pp.y + hh > H2 - 12) { pp.y = H2 - 12 - hh;  pp.vy = -Math.abs(pp.vy); pp.vrot += 7; }
+  if (pp.x - hw < 6)       { pp.x = 6 + hw;      pp.vx =  Math.abs(pp.vx); pp.vrot += 7; pepeKick(14); }
+  if (pp.x + hw > W2 - 6)  { pp.x = W2 - 6 - hw; pp.vx = -Math.abs(pp.vx); pp.vrot -= 7; pepeKick(14); }
+  if (pp.y - hh < pp.top)  { pp.y = pp.top + hh; pp.vy =  Math.abs(pp.vy); pp.vrot -= 7; pepeKick(14); }
+  if (pp.y + hh > H2 - 12) { pp.y = H2 - 12 - hh;pp.vy = -Math.abs(pp.vy); pp.vrot += 7; pepeKick(14); }
 
   /* 惑星。法線方向に速度を反射し、接線方向の分だけ回転をもらう */
   for (const b of pp.bodies || []) {
@@ -695,6 +710,7 @@ function pepeStep(dt) {
       pp.vy -= 2 * dot * ny;
       pp.vrot += (-pp.vx * ny + pp.vy * nx) * .20;   /* かすめると強く回る */
       pp.vx *= .97; pp.vy *= .97;
+      pepeKick(10);
     }
   }
 

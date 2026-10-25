@@ -325,11 +325,13 @@ body.locked{overflow:hidden}
   color:rgba(255,255,255,.5);margin-bottom:20px}
 .space-copy h1{font-size:35px;line-height:1.48;font-weight:700;margin:0;
   letter-spacing:.015em;text-wrap:balance;text-shadow:0 2px 26px rgba(0,0,0,.6)}
-.space-copy p{max-width:530px;margin:17px auto 0;font-size:17px;line-height:1.9;
+.space-copy p{max-width:660px;margin:17px auto 0;font-size:17px;line-height:1.9;
   color:rgba(255,255,255,.76);text-wrap:balance}
 /* 何をする画面かは、下まで読まないと分からないと遅い */
 .space-tip{font-size:15.5px!important;letter-spacing:.03em;
   color:rgba(255,255,255,.6)!important;margin-top:20px!important}
+/* リードはPCだけ2行に割る。スマホは自然に折り返させる */
+.br-pc{display:inline}
 .space-tip::before{content:"";display:inline-block;width:5px;height:5px;
   margin:0 9px 2px 0;border-radius:50%;background:rgba(224,138,27,.9);
   box-shadow:0 0 8px rgba(224,138,27,.8)}
@@ -563,13 +565,14 @@ body.locked{overflow:hidden}
 .sh-go:hover{background:#16284A}
 
 @media(max-width:880px){
-  .space-copy{padding-top:46px}
+  .space-copy{padding-top:34px}
   .space-copy h1{font-size:23px}
+  .br-pc{display:none}
   .space-tip{font-size:12px!important;margin-top:17px!important}
   .space-copy p{font-size:12.5px;line-height:1.9;max-width:340px;margin-top:14px}
   .space-hint{bottom:58px}
   .pl-label{margin-top:14px;max-width:46vw}
-  .mn{width:52px}
+  .mn{width:44px}
   .pl-name{font-size:12.5px}
   .pl-n{font-size:10.5px;margin-top:5px}
   .pl.is-active{transform:translate(-50%,-50%) translate(var(--tx,0),var(--ty,0)) scale(1.35)}
