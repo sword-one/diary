@@ -18,8 +18,10 @@ TITLE = "ORBIT"
 DESC = "仕事をする上で、生きていく上で。人間関係やコミュニケーションのこと、毎日の仕事が少し進めやすくなること。そういう本を選んで、一冊ずつお届けします。"
 JST = timezone(timedelta(hours=9))
 
-# 一覧に入れないもの（トップ・エラーページ・転送用の残骸）
-SKIP = {"index.html", "404.html"}
+# RSSに入れないもの（トップ・エラーページ・記事ではないページ）
+SKIP = {"index.html", "404.html", "ranking.html"}
+# 記事ではないが sitemap には載せるページ
+EXTRA = ["ranking.html"]
 
 
 def meta(html, prop, attr="property"):
@@ -91,6 +93,11 @@ def main():
                     '<changefreq>monthly</changefreq><priority>0.8</priority></url>'
                     % (esc(a["url"]),
                        (a["date"] or newest).strftime("%Y-%m-%d")))
+    for e in EXTRA:
+        if os.path.exists(os.path.join(HERE, e)):
+            rows.append('<url><loc>%s/%s</loc><lastmod>%s</lastmod>'
+                        '<changefreq>weekly</changefreq><priority>0.7</priority></url>'
+                        % (SITE, e, newest.strftime("%Y-%m-%d")))
     write("sitemap.xml",
           '<?xml version="1.0" encoding="UTF-8"?>\n'
           '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
