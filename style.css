@@ -734,3 +734,46 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--accent);
   .next-t{font-size:17px}
 }
 @media print{ .nextbox{display:none} }
+
+
+/* ───── 途中の問い ─────
+   読み終わってから考えさせるのでは遅い。読んでいる最中に止める。
+   記事末のASKと同じ部品を、小さくして使い回す（§6 囲みは3種類まで） */
+.pause{max-width:var(--maxw);margin:44px 0;padding:20px 0 20px 20px;
+  border-left:3px solid var(--accent);background:linear-gradient(
+    90deg, rgba(224,138,27,.055), rgba(224,138,27,0) 72%)}
+.pause-q{font-size:16.5px;line-height:1.75;font-weight:700;color:var(--ink);
+  margin:0;text-wrap:pretty}
+.pause-n{font-size:13.5px;line-height:1.8;color:var(--soft);margin:10px 0 0}
+
+/* ───── ただし、ここは注意 ─────
+   他の要約サイトがやらないところ。弱点と留保を先に出すほうが信用される */
+.caution{max-width:var(--maxw);margin:56px 0 0;padding:24px 0 0;
+  border-top:1px solid var(--hair)}
+.caution-h{font-size:11.5px;font-weight:700;letter-spacing:.14em;
+  color:var(--grey);margin-bottom:15px}
+.caution ul{margin:0;padding:0;list-style:none}
+.caution li{position:relative;padding-left:19px;margin:0 0 .9em;
+  font-size:14px;line-height:1.85;color:var(--soft);text-wrap:pretty}
+.caution li:last-child{margin-bottom:0}
+.caution li::before{content:"";position:absolute;left:2px;top:.72em;
+  width:5px;height:5px;border-radius:50%;background:var(--grey)}
+.caution b{font-weight:700;color:var(--ink)}
+
+/* 本のどこを扱ったか。買うかどうかの判断材料になる */
+.bk-scope{margin-top:10px;padding-top:10px;border-top:1px dashed var(--hair);
+  font-size:12.5px;line-height:1.7;color:var(--soft)}
+.bk-scope b{font-weight:700;color:var(--ink)}
+
+@media(max-width:880px){
+  .pause{margin:36px -8px;padding:18px 0 18px 16px}
+  .pause-q{font-size:15.5px}
+  .pause-n{font-size:13px}
+  .caution li{font-size:13.5px}
+}
+
+
+/* 名前の由来。本文とは別の重さにしたいので罫線で区切る */
+.about-name{font-size:14.5px!important;line-height:1.95;color:var(--soft)!important;
+  margin-top:34px!important;padding-top:26px;border-top:1px solid var(--hair)}
+.about-name b{font-weight:700;color:var(--ink)}

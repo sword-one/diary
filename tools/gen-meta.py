@@ -14,7 +14,7 @@ from datetime import datetime, timezone, timedelta
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SITE = "https://sword-one.github.io/diary"
-TITLE = "ソードワンダイアリー"
+TITLE = "ORBIT"
 DESC = "仕事をする上で、生きていく上で。人間関係やコミュニケーションのこと、毎日の仕事が少し進めやすくなること。そういう本を選んで、一冊ずつお届けします。"
 JST = timezone(timedelta(hours=9))
 
