@@ -23,7 +23,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=202610251228">
+<link rel="stylesheet" href="style.css?v=202610251235">
 
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"Blog",
@@ -63,7 +63,7 @@
     <!-- ペペ。本を持ったまま無重力を漂っている。
          惑星のタップを邪魔しないよう pointer-events は切ってある -->
     <div class="pepe" aria-hidden="true">
-      <span class="pepe-rot"><img src="img/pepe.webp?v=202610251228" alt=""></span>
+      <span class="pepe-rot"><img src="img/pepe.webp?v=202610251235" alt=""></span>
     </div>
 
     <!-- 選んだ惑星の本。惑星のまわりを回っている -->
@@ -113,7 +113,7 @@
   <a class="entry" href="power.html">
     <img src="img/hero02.jpg" alt="">
     <div>
-      <div class="e-n">#02　考え方</div>
+      <div class="e-n">#02　意識</div>
       <div class="e-t">パワーか、フォースか 改訂版</div>
       <p class="e-c">同じ「やりたい」でも、続く人と続かない人がいる。</p>
       <p class="e-d">違いは、根っこにあるものだった。「やりたい」の根に何があるかを調べた本から、「フォース」と「パワー」の違いを。</p>
@@ -124,7 +124,7 @@
   <a class="entry" href="coaching.html">
     <img src="img/hero.jpg" alt="">
     <div>
-      <div class="e-n">#01　コミュニケーション</div>
+      <div class="e-n">#01　伝え方</div>
       <div class="e-t">新 コーチングが人を活かす</div>
       <p class="e-c">その「さすが」は、相手のところで止まっている。</p>
       <p class="e-d">ほめ方を変えると、届く先が変わる。20年ぶりに改訂された定番書から、「ほめ方」の一項目を。</p>
@@ -173,7 +173,7 @@
 
 const BOOKS = [
   {
-    n: '#02', cat: '考え方', p: 'think',
+    n: '#02', cat: '意識', p: 'mind',
     title: 'パワーか、フォースか 改訂版',
     author: 'デヴィッド・R・ホーキンズ／ナチュラルスピリット',
     cover: 'img/cover02_sm.webp',
@@ -194,7 +194,7 @@ const BOOKS = [
     ]
   },
   {
-    n: '#01', cat: 'コミュニケーション', p: 'comm',
+    n: '#01', cat: '伝え方', p: 'talk',
     title: '新 コーチングが人を活かす',
     author: '鈴木義幸／ディスカヴァー・トゥエンティワン',
     cover: 'img/cover_sm.webp',
@@ -220,46 +220,61 @@ const BOOKS = [
    本を足すときは BOOKS に p:'<id>' を書くだけでその惑星に並ぶ。 */
 try {
 const PLANETS = [
-  { id:'comm',  name:'コミュニケーション', sub:'伝え方・ほめ方・声かけ',
+  { id:'talk',  name:'伝え方',     sub:'ほめ方・聞き方・質問',
     look:{ g:'96,164,232', ring:0, turb:.62, detail:.45, cap:0,
       bands:[[-1,'#122c52'],[-.62,'#1f4c87'],[-.26,'#3d78b6'],[.04,'#74b0de'],
              [.34,'#4786bd'],[.68,'#235291'],[1,'#132f58']],
       spot:{ lon:-0.85, lat:-0.22, rx:.26, ry:.13, col:'#0d2246', a:.5 } } },
 
-  { id:'think', name:'考え方',             sub:'ものの見方・価値観',
-    look:{ g:'222,154,66', ring:1, turb:1.25, detail:.8, cap:0,
-      bands:[[-1,'#6d4116'],[-.72,'#b8762c'],[-.46,'#efd4a0'],[-.2,'#9c5f22'],
-             [.02,'#f2dcb0'],[.26,'#c2853a'],[.56,'#e7c288'],[1,'#7a4a19']],
-      spot:{ lon:0.62, lat:0.2, rx:.22, ry:.105, col:'#cf5f3a', a:.62 } } },
-
-  { id:'habit', name:'習慣',               sub:'毎日のやり方・仕組み',
+  { id:'make',  name:'資料づくり', sub:'スライド・図解・見せ方',
     look:{ g:'104,194,152', ring:0, turb:.82, detail:.55, cap:.78,
       bands:[[-1,'#143a2a'],[-.6,'#2a6349'],[-.24,'#58a37c'],[.06,'#93d2ae'],
              [.4,'#3f8362'],[.72,'#1d4b37'],[1,'#123526']],
       spot:null } },
 
-  { id:'team',  name:'チーム',             sub:'人を育てる・組織',
+  { id:'habit', name:'習慣',       sub:'続け方・自分の変え方',
+    look:{ g:'222,154,66', ring:1, turb:1.25, detail:.8, cap:0,
+      bands:[[-1,'#6d4116'],[-.72,'#b8762c'],[-.46,'#efd4a0'],[-.2,'#9c5f22'],
+             [.02,'#f2dcb0'],[.26,'#c2853a'],[.56,'#e7c288'],[1,'#7a4a19']],
+      spot:{ lon:0.62, lat:0.2, rx:.22, ry:.105, col:'#cf5f3a', a:.62 } } },
+
+  { id:'heart', name:'心',         sub:'手放す・自分をいたわる',
+    look:{ g:'214,126,142', ring:0, turb:.9, detail:.6, cap:.72,
+      bands:[[-1,'#471c24'],[-.6,'#7e3a46'],[-.26,'#bd7682'],[.05,'#eeb0b9'],
+             [.36,'#9c505e'],[.7,'#5d2630'],[1,'#3f1920']],
+      spot:null } },
+
+  { id:'life',  name:'生き方',     sub:'キャリア・運・命',
     look:{ g:'162,126,218', ring:0, turb:1.05, detail:.7, cap:0,
       bands:[[-1,'#2b1b50'],[-.66,'#4a3280'],[-.3,'#8168c0'],[.02,'#b79ae2'],
              [.3,'#6d52ad'],[.64,'#3a2668'],[1,'#261646']],
       spot:{ lon:-0.3, lat:-0.34, rx:.18, ry:.09, col:'#d9c4f2', a:.4 } } },
 
-  { id:'self',  name:'自分',               sub:'内省・在り方',
-    look:{ g:'214,126,142', ring:1, turb:.9, detail:.6, cap:.72,
-      bands:[[-1,'#471c24'],[-.6,'#7e3a46'],[-.26,'#bd7682'],[.05,'#eeb0b9'],
-             [.36,'#9c505e'],[.7,'#5d2630'],[1,'#3f1920']],
-      spot:null } }
+  { id:'mind',  name:'意識',       sub:'引き寄せ・波動・内なる力',
+    look:{ g:'96,196,206', ring:1, turb:.95, detail:.65, cap:0,
+      bands:[[-1,'#0d3338'],[-.6,'#19585f'],[-.24,'#3f949c'],[.06,'#86d2d8'],
+             [.38,'#2f7c84'],[.7,'#154a51'],[1,'#0b2d32']],
+      spot:{ lon:0.4, lat:0.26, rx:.2, ry:.1, col:'#b9f0f4', a:.42 } } }
 ];
 
 /* これから書く本。惑星の上では灰色の「準備中」として並ぶ */
 const SOON = [
-  { p:'comm',  title:'たった1分で相手をやる気にさせる話術 ペップトーク' },
+  { p:'talk',  title:'人生を変える「質問力」の教え' },
+  { p:'talk',  title:'コーチの質問' },
+  { p:'talk',  title:'たった1分で相手をやる気にさせる話術 ペップトーク' },
+  { p:'make',  title:'伝わるスライドデザイン大全' },
+  { p:'make',  title:'図解思考' },
+  { p:'make',  title:'パワポdeデザイン' },
   { p:'habit', title:'完訳 7つの習慣 人格主義の回復' },
-  { p:'think', title:'準備中' },
-  { p:'team',  title:'準備中' },
-  { p:'team',  title:'準備中' },
-  { p:'self',  title:'準備中' },
-  { p:'self',  title:'準備中' }
+  { p:'habit', title:'自分の変え方 認知科学コーチング' },
+  { p:'heart', title:'「手放し」のすすめ' },
+  { p:'heart', title:'セルフ・コンパッション' },
+  { p:'life',  title:'WILL キャリアの羅針盤の見つけ方' },
+  { p:'life',  title:'運の本質' },
+  { p:'life',  title:'命の燃やし方' },
+  { p:'mind',  title:'引き寄せの法則を全部やったら' },
+  { p:'mind',  title:'波動の法則' },
+  { p:'mind',  title:'現実が瞬く間に好転する 浄化の力' }
 ];
 
 const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -453,8 +468,8 @@ function drawRing(g, C, R, look, half) {
 
 /* ───────── 惑星を置く ───────── */
 /* 上部は見出しが入るので、y は 40%% より下だけを使う */
-const P_SLOTS_W = [[14,46,1.10],[34,70,.84],[55,41,.95],[76,66,1.22],[88,34,.80]];
-const P_SLOTS_N = [[28,42,1.12],[73,53,.94],[31,64,1.04],[74,74,.84],[22,83,.66]];
+const P_SLOTS_W = [[13,44,1.10],[31,69,.86],[49,37,.96],[66,62,1.18],[84,40,.82],[94,70,.64]];
+const P_SLOTS_N = [[27,40,1.10],[72,48,.92],[29,58,1.02],[73,67,.84],[26,76,.72],[71,84,.60]];
 
 let pEls = [], focused = -1;
 
